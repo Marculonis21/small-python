@@ -3,7 +3,7 @@ class BoardClass:
     lines = ""
 
     def fileReady():
-        file = open("//home//marculonis//Desktop//TTT_games.txt")
+        file = open("TTT_games.txt")
         BoardClass.lines = file.readlines()
         file.close()
 
