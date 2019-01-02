@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import curses as C
 import random as R
 import string
