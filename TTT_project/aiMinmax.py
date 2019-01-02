@@ -52,8 +52,8 @@ def netTraining(_board, player):
     l2_error = l3_delta.dot(w2.T)
     l2_delta = l2_error*nonlin(l2, deriv=True)
 
-    w2 += l2.T.dot(l3_delta)
-    w1 += l1.T.dot(l2_delta)
+    w2 += l2.T.dot(l3_delta) * 0.2
+    w1 += l1.T.dot(l2_delta) * 0.2
 
     out = list(l3[0])
 
