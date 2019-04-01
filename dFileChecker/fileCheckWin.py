@@ -16,9 +16,8 @@ def fSMethod(dir):
         if(xxx[0] != ""):
             x = i.split(" ").pop()
             if(x != "." and x != ".."):
-                b = bytes(x.encode("iso8859-2"))
-                print(b)
-                files.append(x)
+                s = czWin_Trans(x)
+                files.append(s)
 
     for x in files:
         if(os.path.isdir("{}\{}".format(dir, x))):
@@ -28,6 +27,32 @@ def fSMethod(dir):
 
 def strip_accents(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s)if unicodedata.category(c) != 'Mn')
+
+def czWin_Trans(x):
+    b = list(bytes(x.encode("cp1250")))
+    for i in range(len(b)):
+        if("\\xd8" in b[i]):
+            b[i] = "ě"
+        if("\\xe7" in b[i]):
+            b[i] = "š"
+        if("\\x9f" in b[i]):
+            b[i] = "č"
+        if("\\xfd" in b[i]):
+            b[i] = "ř"
+        if("\\xa7" in b[i]):
+            b[i] = "ž"
+        if("\\xec" in b[i]):
+            b[i] = "ý"
+        if("\\xa0" in b[i]):
+            b[i] = "á"
+        if("\\xal" in b[i]):
+            b[i] = "í"
+        if("\\x82" in b[i]):
+            b[i] = "é"
+
+    s = "".join(x for x in b)
+    return s
+    
 
 logging.basicConfig(filename=("duplicatesLog.txt"), level=logging.DEBUG, format="Found duplicate: %(message)s")
 
@@ -40,13 +65,14 @@ for i in allP:
     if(xxx[0] != ""):
         x = i.split(" ").pop()
         if(x != "." and x != ".."):
-            allPath.append(x)
+            s = czWin_Trans(x)
+            allPath.append(s)
     
 dirs = [x for x in allPath if os.path.isdir(x)]
 
 for item in dirs:
     fSMethod(item)
-quit()
+
 fDir = {}
 loop = 0
 for f in fileMem:
