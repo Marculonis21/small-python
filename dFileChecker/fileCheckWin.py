@@ -29,28 +29,30 @@ def strip_accents(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s)if unicodedata.category(c) != 'Mn')
 
 def czWin_Trans(x):
-    b = list(bytes(x.encode("cp1250")))
+    xxx = list(x)
+    b = [i.encode("cp1250") for i in xxx]
+    
     for i in range(len(b)):
-        if("\\xd8" in b[i]):
-            b[i] = "ě"
-        if("\\xe7" in b[i]):
-            b[i] = "š"
-        if("\\x9f" in b[i]):
-            b[i] = "č"
-        if("\\xfd" in b[i]):
-            b[i] = "ř"
-        if("\\xa7" in b[i]):
-            b[i] = "ž"
-        if("\\xec" in b[i]):
-            b[i] = "ý"
-        if("\\xa0" in b[i]):
-            b[i] = "á"
-        if("\\xal" in b[i]):
-            b[i] = "í"
-        if("\\x82" in b[i]):
-            b[i] = "é"
-
-    s = "".join(x for x in b)
+        if(b"\xd8" == b[i]):
+            xxx[i] = "ě"
+        if(b"\xe7" == b[i]):
+            xxx[i] = "š"
+        if(b"\x9f" == b[i]):
+            xxx[i] = "č"
+        if(b"\xfd" == b[i]):
+            xxx[i] = "ř"
+        if(b"\xa7" == b[i]):
+            xxx[i] = "ž"
+        if(b"\xec" == b[i]):
+            xxx[i] = "ý"
+        if(b"\xa0" == b[i]):
+            xxx[i] = "á"
+        if(b"\xa1" == b[i]):
+            xxx[i] = "í"
+        if(b"\x82" == b[i]):
+            xxx[i] = "é"
+                
+    s = "".join(x for x in xxx)
     return s
     
 
