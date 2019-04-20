@@ -3,10 +3,24 @@
 from boardClass import BoardClass as bc
 import time
 import numpy as np
+import turtle as t
 import random as r
 # from tqdm import tqdm
 
 bc.fileReady()
+
+tActual = 0
+tFirstTime = True
+tScale = 250
+t.setup(1000,400)
+t.hideturtle()
+t.up()
+t.setx(t.Screen().window_width()/2)
+t.down()
+t.setx(-t.Screen().window_width()/2)
+t.setx(-t.Screen().window_width()/2 + 20)
+t.up()
+t.left(90)
 
 def nonlin(x, deriv=False):
     if(deriv):
@@ -46,6 +60,30 @@ def netTraining(_board, player):
     l1 = np.array([board])
     l2 = nonlin(np.dot(l1, w1))
     l3 = nonlin(np.dot(l2, w2))
+
+    error = np.mean(np.abs(wantedOut - l3))
+    global tFirstTime, tActual, tScale
+    if(tFirstTime):
+        t.forward(error*tScale)
+        tActual = error
+        t.right(90)
+        t.down()
+        tFirstTime = False
+    else:
+        if(error > tActual):
+            t.left(80)
+            t.forward(abs(error - tActual)*tScale)
+            tActual = error
+            t.right(80)
+            t.dot(3)
+            t.write("{:0.3f}".format(np.mean(wantedOut-l3)))
+        else:
+            t.right(80)
+            t.forward(abs(error - tActual)*tScale)
+            tActual = error
+            t.left(80)
+            t.dot(3)
+            t.write("{:0.3f}".format(np.mean(wantedOut-l3)))
 
     l3_error = wantedOut - l3
     l3_delta = l3_error*nonlin(l3, deriv=True)

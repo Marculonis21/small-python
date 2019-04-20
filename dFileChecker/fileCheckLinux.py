@@ -9,6 +9,7 @@ def fSMethod(dir):
 
     files = os.popen("ls {}/".format(dir)).read().split("\n")
     files.pop()
+
     for x in files:
         if(os.path.isdir("{}/{}".format(dir, x))):
             dirs.append("{}/{}".format(dir, x))
