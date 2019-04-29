@@ -1,16 +1,40 @@
+import random
+
 class BoardClass:
 
-    lines = ""
-
-    def fileReady():
+    def fileReady(self):
         file = open("TTT_games.txt")
-        BoardClass.lines = file.readlines()
+        self.lines = file.readlines()
         file.close()
 
-    def initBoard():
+        self.allInOne = []
+        for i in range(len(self.lines)):
+            if(i % 2 == 1):
+                x = self.lines[i].split("|")
+                x.pop() #pop \n
+                x.pop() #pop "The solution"
+                for y in x:
+                    self.allInOne.append(y)
+
+        self.playCount = len(self.allInOne)
+
+    def initBoard(self):
         return [0.5 for i in range(9)]
 
-    def printBoard(board, real=[]):
+    def conv2Board(self, sboard):
+        x = list(sboard)
+        _board = []
+        for i in x:
+            if(i == "O"):
+                _board.append(0)
+            elif(i == "X"):
+                _board.append(1)
+            else:
+                _board.append(0.5)
+
+        return(_board)
+
+    def printBoard(self, board, real=[]):
         minus = 0
 
         for y in range(3):
@@ -36,7 +60,7 @@ class BoardClass:
             print("")
         print("")
 
-    def isComplete(board=[]):
+    def isComplete(self, board=[]):
         if(board.count(0.5) == 0):
             return True
         else:
@@ -59,7 +83,7 @@ class BoardClass:
             else:
                 return False
 
-    def pWon(board=[]):
+    def pWon(self, board=[]):
         if(board[0] == board[1] == board[2] != 0.5):
             return board[0]
         elif(board[3] == board[4] == board[5] != 0.5):
@@ -79,7 +103,7 @@ class BoardClass:
         else:
             return -1
 
-    def getMoveOptions(board, player):
+    def getMoveOptions(self, board, player):
         moveMatrix = []
 
         for i in range(9):
@@ -91,7 +115,7 @@ class BoardClass:
 
         return moveMatrix
 
-    def minMax(board=[], player=-1):
+    def minMax(self, board=[], player=-1):
         value = 0
 
         testStr = ""
@@ -103,19 +127,17 @@ class BoardClass:
             else:
                 testStr += "."
 
-        lines = BoardClass.lines
-
         found = False
         loop = -1
 
-        for line in lines:
+        for line in self.lines:
             loop += 1
             # if(loop%5000 == 0):
             #     print(loop)
 
             if(testStr in line):
                 found = True
-                if("Noughts" in lines[loop-1]):
+                if("Noughts" in self.lines[loop-1]):
                     if(player == 0):
                         value += 1
 
@@ -131,7 +153,7 @@ class BoardClass:
                             len(line.split('|'))-3):
                             value -= 100
 
-                elif("Crosses" in lines[loop-1]):
+                elif("Crosses" in self.lines[loop-1]):
                     if(player == 0):
                         value -= 1
 
@@ -155,3 +177,16 @@ class BoardClass:
                 break
 
         return value
+
+    def getPlayBoard(self, idx=random.randint(0,1851119)):
+        if(idx >= 0 and idx < len(self.allInOne)):
+            return(self.allInOne[idx])
+        else:
+            return("INVALID INPUT")
+
+if __name__ == "__main__":
+    bc = BoardClass()
+    bc.fileReady()
+
+    print(bc.getPlayBoard(10000))
+    print(bc.conv2Board(bc.getPlayBoard(10000)))
