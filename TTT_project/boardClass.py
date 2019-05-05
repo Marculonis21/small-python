@@ -4,9 +4,22 @@ class BoardClass:
 
     def fileReady(self):
         file = open("TTT_games.txt")
+        ff = open("TTT_trimGames.txt")
         self.lines = file.readlines()
+        self.trimlines = ff.readlines()
         file.close()
+        ff.close()
 
+        self.allInOne = []
+
+        for line in self.trimlines:
+            x = list(line)
+            x.pop()
+            self.allInOne.append(x)
+
+        self.playCount = len(self.allInOne)
+
+        '''
         self.allInOne = []
         for i in range(len(self.lines)):
             if(i % 2 == 1):
@@ -17,6 +30,7 @@ class BoardClass:
                     self.allInOne.append(y)
 
         self.playCount = len(self.allInOne)
+        '''
 
     def initBoard(self):
         return [0.5 for i in range(9)]
@@ -178,7 +192,7 @@ class BoardClass:
 
         return value
 
-    def getPlayBoard(self, idx=random.randint(0,1851119)):
+    def getPlayBoard(self, idx=random.randint(0,4519)):
         if(idx >= 0 and idx < len(self.allInOne)):
             return(self.allInOne[idx])
         else:
@@ -188,5 +202,5 @@ if __name__ == "__main__":
     bc = BoardClass()
     bc.fileReady()
 
-    print(bc.getPlayBoard(10000))
-    print(bc.conv2Board(bc.getPlayBoard(10000)))
+    print(bc.getPlayBoard(1000))
+    print(bc.conv2Board(bc.getPlayBoard(1000)))

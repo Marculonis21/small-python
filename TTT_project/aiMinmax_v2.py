@@ -13,12 +13,12 @@ bc.fileReady()
 
 def nonlin(x, deriv=False):
     if(deriv):
-        return(x*(1-x))
+        return (x*(1-x))
 
     return 1/(1+np.exp(-x))
 
 def netTraining(_board, player, log=False):
-    start = time.time()
+    #start = time.time()
 
     if(player == 1):
         board = _board.copy()
@@ -44,42 +44,37 @@ def netTraining(_board, player, log=False):
         elif(mmvals[i-takenValue] == max(mmvals)):
             wantedOut[i] = 1
 
-    global w1, w2
+    global w1, w2, b1, b2
 
     l1 = np.array([board])
-    l2 = nonlin(np.dot(l1, w1))
-    l3 = nonlin(np.dot(l2, w2))
+    mid1 = np.dot(l1,w1)-b1
+    l2 = nonlin(mid1)
+    mid2 = np.dot(l2,w2)-b2
+    l3 = nonlin(mid2)
 
-    l3_error = wantedOut - l3
+    l3_error = np.array([wantedOut]) - l3
     l3_delta = l3_error*nonlin(l3, deriv=True)
     l2_error = l3_delta.dot(w2.T)
     l2_delta = l2_error*nonlin(l2, deriv=True)
 
-    w2 += l2.T.dot(l3_delta)*0.01
-    w1 += l1.T.dot(l2_delta)*0.01
+    w2 += l2.T.dot(l3_delta)
+    w1 += l1.T.dot(l2_delta)
 
-    out = list(l3[0])
+    global avg, loopCount
+    loopCount += 1
+    if(loopCount == 500):
+        np.save("w1File", w1)
+        np.save("w2File", w2)
+        np.save("b1File", b1)
+        np.save("b2File", b2)
+        loopCount = 0
+        tqdm.write("np files saved")
 
-    for i in range(9):
-        if(_board[i] != 0.5):
-            out[i] = 0
-
-    _board[out.index(max(out))] = player
-
-    np.save("w1File", w1)
-    np.save("w2File", w2)
-
-    end = time.time()
-    global avg, avgCount
+    #end = time.time()
     if(log):
         #tqdm.write("Was working for {:3f}".format(end-start))
         #tqdm.write(str(np.mean(np.abs(l3_error))))
         avg += np.mean(np.abs(l3_error))
-        avgCount += 1
-        if(avgCount == 100):
-            tqdm.write(str(avg/100))
-            avgCount = 0
-            avg = 0
 
 def netPlay(_board, player):
 
@@ -96,8 +91,10 @@ def netPlay(_board, player):
                 board.append(1)
 
     l1 = np.array([board])
-    l2 = nonlin(np.dot(l1, w1))
-    l3 = nonlin(np.dot(l2, w2))
+    mid1 = np.dot(l1, w1)-b1
+    l2 = nonlin(mid1)
+    mid2 = np.dot(l2, w2)-b2
+    l3 = nonlin(mid2)
 
     out = list(l3[0])
 
@@ -275,17 +272,18 @@ def loadNetWeights():
     try:
         _w1 = np.load("w1File.npy")
         _w2 = np.load("w2File.npy")
+        _b1 = np.load("b1File.npy")
+        _b2 = np.load("b2File.npy")
         print("Save files found - Weights loaded from files")
     except FileNotFoundError:
-        _w1 = 2*np.random.random([9, 81]) - 1
-        _w2 = 2*np.random.random([81, 9]) - 1
-
+        _w1 = 2*np.random.random((9, 81)) - 1
+        _b1 = 2*np.random.random((81)) - 1
+        _w2 = 2*np.random.random((81, 9)) - 1
+        _b2 = 2*np.random.random((9)) - 1
         print("No save files found - Weights initialized")
 
-    global w1, w2
+    return _w1, _w2, _b1, _b2
 
-    w1 = _w1
-    w2 = _w2
 '''
 def setUpWork():
     if(decision == "exit"):
@@ -321,27 +319,32 @@ def setUpWork():
     ppChance = _ppChance
 '''
 
-w1 = 0
-w2 = 0
-loadNetWeights()
+w1, w2, b1, b2 = loadNetWeights()
 
+logEnabled = True
 avg = 0
-avgCount = 0
-for i in tqdm(range(bc.playCount)):
-    board = bc.conv2Board(bc.getPlayBoard(i))
-    c = 0
-    n = 0
-    for i in range(9):
-        if(board[i] == 1):
-            c+=1
-        elif(board[i] == 0):
-            n+=1
+loopCount = 0
 
-    if(n > c):
-        netTraining(board,1,True)
-    else:
-        netTraining(board,0,True)
+iter = int(input("How many training rounds? "))
+for gen in range(iter):
+    avg = 0
+    for i in tqdm(range(bc.playCount)):
+        board = bc.conv2Board(bc.getPlayBoard(i))
+        c = 0
+        n = 0
+        for i in range(9):
+            if(board[i] == 1):
+                c+=1
+            elif(board[i] == 0):
+                n+=1
 
+        if(n > c):
+            netTraining(board,1,logEnabled)
+        else:
+            netTraining(board,0,logEnabled)
+
+    if(logEnabled):
+        tqdm.write("Average error in last generation: {}\n".format(avg/bc.playCount))
 
 '''
 # 1 Play - 0 Training / Loop amount / Time amount
