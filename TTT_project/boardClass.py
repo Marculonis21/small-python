@@ -1,7 +1,6 @@
 import random
 
 class BoardClass:
-
     def fileReady(self):
         file = open("TTT_games.txt")
         ff = open("TTT_trimGames.txt")

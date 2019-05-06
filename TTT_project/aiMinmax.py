@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-from boardClass import BoardClass as bc
+import boardClass as _bc
 import time
 import numpy as np
 import turtle as t
 import random as r
 # from tqdm import tqdm
 
+bc = _bc.BoardClass()
 bc.fileReady()
 
 tActual = 0
