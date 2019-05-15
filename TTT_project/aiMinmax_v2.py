@@ -7,7 +7,6 @@ import numpy as np
 import random as r
 from tqdm import tqdm
 
-
 bc = _bc.BoardClass()
 bc.fileReady()
 
@@ -137,7 +136,11 @@ def humPlay(board, player):
     board[pos] = player
 
 def gameDecisionTree():
-    decision = ""
+    _MODE = -1
+    _TRounds = -1
+    _TLogging = -1
+    _PRounds = -1
+    _exit = -1
 
     while True:
         try:
@@ -154,18 +157,24 @@ def gameDecisionTree():
             elif(a == 101):
                 while True:
                     try:
-                        s = input("Are you sure (Y/N)")
+                        s = input("Are you sure (Y/N)\n")
                         if(s == "Y" or s == "y"):
-                            global w1, w2
+                            global w1, w2, b1, b2
 
-                            _w1 = 2*np.random.random([9, 81]) - 1
-                            _w2 = 2*np.random.random([81, 9]) - 1
+                            _w1 = 2*np.random.random((9, 81)) - 1
+                            _b1 = 2*np.random.random((81)) - 1
+                            _w2 = 2*np.random.random((81, 9)) - 1
+                            _b2 = 2*np.random.random((9)) - 1
 
                             w1 = _w1
+                            b1 = _b1
                             w2 = _w2
+                            b2 = _b2
 
                             np.save("w1File", w1)
                             np.save("w2File", w2)
+                            np.save("b1File", b1)
+                            np.save("b2File", b2)
 
                             print("Weights were randomized")
                             break
@@ -183,86 +192,49 @@ def gameDecisionTree():
             print("INVALID INPUT!\n")
 
     if(a == 0):
-        decision += "0|"
-
-        endFound = False
-        sec = True
-
-        while True:
-            if(sec):
-                while True:
-                    try:
-                        c = input("\nWanted training time (s): ")
-                        if(c == "m" or c == "M"):
-                            sec = False
-                            break
-                        else:
-                            c = int(c)
-
-                        if(c > 0):
-                            endFound = True
-                            break
-                        else:
-                            print("INVALID INPUT!\n")
-                            pass
-                    except ValueError:
-                        print("INVALID INPUT!\n")
-            else:
-                while True:
-                    try:
-                        c = input("\nWanted training time (m): ")
-                        if(c == "s" or c == "S"):
-                            sec = True
-                            break
-                        else:
-                            c = int(c)
-
-                        if(c > 0):
-                            c *= 60
-                            endFound = True
-                            break
-                        else:
-                            print("INVALID INPUT!\n")
-                            pass
-                    except ValueError:
-                        print("INVALID INPUT!\n")
-
-            if(endFound):
-                break
-            else:
-                pass
+        _MODE = 0
 
         while True:
             try:
-                d = int(input("\nPseudo-random play chance (%): "))
+                b = int(input("\nHow many training rounds? (1r = 8:30)\n"))
+                break
 
-                if(d > 0 and d < 101):
-                    break
-                else:
-                    print("INVALID INPUT!\n")
-                    pass
             except ValueError:
                 print("INVALID INPUT!\n")
 
-        decision += "0|"
-        decision += str(c)+"|"+str(d)
+        _TRounds = b
+
+        while True:
+            try:
+                b = int(input("\nLOG - Enable ----- > 1\n"+
+                                "      Disabled --- > 2\n"))
+                break
+
+            except ValueError:
+                print("INVALID INPUT!\n")
+
+        if(b == 1):
+            _TLogging = 1
+        else:
+            _TLogging = 0
 
     elif(a == 1):
-        decision += "1|"
+        _MODE = 1
+
         while True:
             try:
-                b = int(input("\nHow many games do you want to play?\n"))
+                b = int(input("\nHow many games you want to play\n"))
                 break
+
             except ValueError:
                 print("INVALID INPUT!\n")
 
-        decision += str(b)
-        decision += "|0|0"
+        _PRounds = b
 
     elif(a == 2):
-        decision = "exit"
+        _exit = 1
 
-    return decision
+    return _MODE, _TRounds, _TLogging, _PRounds, _exit
 
 # netStructure
 # 9 input
@@ -284,150 +256,108 @@ def loadNetWeights():
 
     return _w1, _w2, _b1, _b2
 
-'''
-def setUpWork():
-    if(decision == "exit"):
-        #break
-        raise EOFError
-        pass
-    else:
-        if(decision.split("|")[0] == "0"):
-            _TRAINING = True
-        else:
-            _TRAINING = False
-
-        if(decision.split("|")[1] != "0"):
-            _wantedLoop = int(decision.split("|")[1])
-        else:
-            _wantedLoop = 1234567890
-
-        if(decision.split("|")[2] != "0"):
-            _endTime = int(decision.split("|")[2])
-        else:
-            _endTime = 1234567890
-
-        if(decision.split("|")[3] != "0"):
-            _ppChance = int(decision.split("|")[3])
-        else:
-            _ppChance = 0
-
-    global TRAINING, wantedLoop, endTime, ppChance
-
-    TRAINING = _TRAINING
-    wantedLoop = _wantedLoop
-    endTime = _endTime
-    ppChance = _ppChance
-'''
-
 w1, w2, b1, b2 = loadNetWeights()
 
-logEnabled = True
-avg = 0
-loopCount = 0
+MODE, TRounds, TLogging, PRounds, exit = gameDecisionTree()
 
-iter = int(input("How many training rounds? "))
-for gen in range(iter):
+#--------------------------------------------------------------
+#-------------------------------------------------------------- TRAINING
+#--------------------------------------------------------------
+if(MODE == 0):
+    if(TLogging == 1):
+        logEnabled = True
+    else:
+        logEnabled = False
+
     avg = 0
-    for i in tqdm(range(bc.playCount)):
-        board = bc.conv2Board(bc.getPlayBoard(i))
-        c = 0
-        n = 0
-        for i in range(9):
-            if(board[i] == 1):
-                c+=1
-            elif(board[i] == 0):
-                n+=1
+    loopCount = 0
+    print()
 
-        if(n > c):
-            netTraining(board,1,logEnabled)
-        else:
-            netTraining(board,0,logEnabled)
+    for gen in range(TRounds):
+        avg = 0
+        for i in tqdm(range(bc.playCount)):
+            board = bc.conv2Board(bc.getPlayBoard(i))
+            c = 0
+            n = 0
+            for i in range(9):
+                if(board[i] == 1):
+                    c+=1
+                elif(board[i] == 0):
+                    n+=1
 
-    if(logEnabled):
-        tqdm.write("Average error in last generation: {}\n".format(avg/bc.playCount))
+            if(n > c):
+                netTraining(board,1,logEnabled)
+            else:
+                netTraining(board,0,logEnabled)
 
-'''
-# 1 Play - 0 Training / Loop amount / Time amount
-decision = gameDecisionTree()
+        if(logEnabled):
+            tqdm.write("Average error in last generation: {}\n".format(avg/bc.playCount))
 
-trainingScore = [0, 0, 0]
+#--------------------------------------------------------------
+#-------------------------------------------------------------- PLAYING
+#--------------------------------------------------------------
+elif(MODE == 1): #KINDA PLAYING
 
-wantedLoop = 0
-endTime = 0
-ppChance = 0
-setUpWork()
-
-TURN = 0
-playerHum = 1
-playerAi = 0
-
-iterations = 0
-startTime = time.time()
-
-while ((time.time() - startTime < endTime and endTime != 1234567890) or
-    (iterations < wantedLoop and wantedLoop != 1234567890)):
-
-    iterations += 1
-    print("--------Iteration {}-------".format(iterations))
+    scoreTable = [0, 0, 0]
 
     TURN = 0
+    playerHum = 1
+    playerAi = 0
 
-    board = bc.initBoard()
-    while True:
-        bc.printBoard(board)
+    for rounds in range(PRounds):
+        print("--------Round {}-------".format(rounds+1))
 
-        if(bc.isComplete(board)):
-            if(bc.pWon(board) == playerAi):
-                print("AI won")
-                trainingScore[1] += 1
-            elif(bc.pWon(board) == playerHum):
-                print("Player won")
-                trainingScore[0] += 1
-            else:
-                print("Draw")
-                trainingScore[2] += 1
+        TURN = 0
 
-            break
+        board = bc.initBoard()
+        while True:
+            bc.printBoard(board)
 
-        if(TURN == playerAi):
-            print("PlayingAI")
+            if(bc.isComplete(board)):
+                if(bc.pWon(board) == playerAi):
+                    print("AI won")
+                    scoreTable[1] += 1
+                elif(bc.pWon(board) == playerHum):
+                    print("Player won")
+                    scoreTable[0] += 1
+                else:
+                    print("Draw")
+                    scoreTable[2] += 1
 
-            if(TRAINING):
-                netTraining(board, playerAi)
-            else:
+                break
+
+            if(TURN == playerAi):
+                print("Playing AI")
+
                 netPlay(board, playerAi)
 
-            TURN = playerHum
+                TURN = playerHum
 
-        else:
-            print("PlayingHuman/Random")
-
-            if(TRAINING):
-                # randomPlay(board, playerHum)
-                pseudoRandomPlay(board, playerHum, ppChance)
             else:
+                print("Playing Human")
+
                 humPlay(board, playerHum)
 
-            TURN = playerAi
+                TURN = playerAi
 
-    if(playerHum == 1):
-        playerHum = 0
-    else:
-        playerHum = 1
+        if(playerHum == 1):
+            playerHum = 0
+        else:
+            playerHum = 1
 
-    if(playerAi == 1):
-        playerAi = 0
-    else:
-        playerAi = 1
+        if(playerAi == 1):
+            playerAi = 0
+        else:
+            playerAi = 1
 
-if(TRAINING):
-    print("------------------- END OF TRAINING -------------------")
-    print("Player wins: {}\nAI wins: {}\nDraws: {}".format(trainingScore[0],trainingScore[1],trainingScore[2]))
-    print("Work time: {:.3f}".format(time.time()-startTime))
-else:
-    print("\nPlayer wins: {}\nAI wins: {}\nDraws: {}".format(trainingScore[0],trainingScore[1],trainingScore[2]))
-'''
+    print("\n"+
+          "Game done\n"+
+          "Player Won {} times\n".format(scoreTable[0])+
+          "AI Won {} times\n".format(scoreTable[1])+
+          "Draws {} times\n".format(scoreTable[2]))
+
 input()
+
 
 '''
 bc.fileReady()

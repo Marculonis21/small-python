@@ -1,0 +1,14 @@
+O| |X
+X| | 
+X|O|O
+
+chci aby mi to vrátilo čísla, jak dobré je kam co dát
+
+1. minimax z boardy ->
+
+[1]Loop přes všechny pozice, když je nějaká prázdná -> nová board s player hráčem
+
+[2]Zkontrolovat, jestli board není vítězná - vrátit body 
+X
+když není, loop přes všechny pozice -> [1] - pokud není volná pozice, draw - vrátit nulu
+

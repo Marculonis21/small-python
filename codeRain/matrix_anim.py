@@ -157,9 +157,9 @@ def animation_play():
             # spawn rate counter
             if(spawnTime > spawnCD):
                 spawnCD += R.randint(5,10)
-                for i in range(R.randint(1,5)):
+                for i in range(R.randint(4,10)):
                     # instance spawning
-                    sCol.append(lString(win, R.randint(5,win.getmaxyx()[0]-(win.getmaxyx()[0]/3)), R.randint(35,80), R.randint(30, 150)))
+                    sCol.append(lString(win, R.randint(5,int(win.getmaxyx()[0])-(int(win.getmaxyx()[0]/3))), R.randint(35,80), R.randint(30, 150)))
 
             # all tick loop
             for item in sCol:

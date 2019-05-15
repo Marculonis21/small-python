@@ -18,19 +18,6 @@ class BoardClass:
 
         self.playCount = len(self.allInOne)
 
-        '''
-        self.allInOne = []
-        for i in range(len(self.lines)):
-            if(i % 2 == 1):
-                x = self.lines[i].split("|")
-                x.pop() #pop \n
-                x.pop() #pop "The solution"
-                for y in x:
-                    self.allInOne.append(y)
-
-        self.playCount = len(self.allInOne)
-        '''
-
     def initBoard(self):
         return [0.5 for i in range(9)]
 
@@ -128,6 +115,51 @@ class BoardClass:
 
         return moveMatrix
 
+    def getOpponent(self, player):
+        if(player == 0):
+            return 1
+        else:
+            return 0
+
+
+    def mmFunc(self, board, player):
+        #print("mmOPENED")
+        #self.printBoard(board)
+        if(self.pWon(board) == self.getOpponent(player)):
+            #opponent won
+            #print("Player {} won".format(self.getOpponent(player)))
+            #print("returning -50")
+            return -50
+
+
+        freePos = self.getMoveOptions(board, player)
+
+        if(len(freePos) == 0):
+            #draw
+            #print("drawState")
+            #print("returning 1")
+            return 0
+        else:
+            #print("pos found {}".format(len(freePos)))
+            score = -2
+
+            for opt in freePos:
+                #print("board sent")
+                #self.printBoard(opt)
+                singleMoveScore = -self.mmFunc(opt, self.getOpponent(player))
+                #print("board returned")
+                #self.printBoard(opt)
+                #print("score returned {}".format(singleMoveScore))
+
+                #print("score/singleMoveScore ... {}/{}".format(score,singleMoveScore))
+                if(score < singleMoveScore):
+                    score = singleMoveScore
+
+            #print("returning score {}".format(score))
+            return score
+
+
+
     def minMax(self, board=[], player=-1):
         value = 0
 
@@ -145,8 +177,6 @@ class BoardClass:
 
         for line in self.lines:
             loop += 1
-            # if(loop%5000 == 0):
-            #     print(loop)
 
             if(testStr in line):
                 found = True
@@ -185,8 +215,6 @@ class BoardClass:
                     value += 0
 
             elif(found and loop % 2 == 1):
-                # print(line)
-                # print(loop)
                 break
 
         return value
@@ -201,5 +229,44 @@ if __name__ == "__main__":
     bc = BoardClass()
     bc.fileReady()
 
-    print(bc.getPlayBoard(1000))
-    print(bc.conv2Board(bc.getPlayBoard(1000)))
+    # --- TO JE SAKRA DOBREJ SYSTÉM---
+
+    #zkušební hry
+    board = [  0,0.5,0.5,
+             0.5,0.5,0.5,
+             0.5,0.5,0.5]
+
+    board2 = [  0,0.5,0.5,
+              0.5,  1,0.5,
+              0.5,0.5,0.5]
+
+    #vytvořit list dalších možných her pro akt. hráče
+    opts = bc.getMoveOptions(board,1)
+    #spočítat hodnotu každého pohybu (-minmax)
+    #!začít protihráčem akt. hráče
+    vals = [-bc.mmFunc(x,0) for x in opts]
+
+    opts2 = bc.getMoveOptions(board2,0)
+    vals2 = [-bc.mmFunc(x,1) for x in opts2]
+
+    bc.printBoard(vals,board)
+    bc.printBoard(vals2,board2)
+
+    #když minimax vyhodnotí všechny ideální konce jako draw bude víc nul
+    #a žádný dominantí tah
+    if(vals2.count(50) == 0 and vals2.count(0) > 1):
+
+        #zjistit, jaké tahy byly nejlepší (neskončí prohrou ale draw -> 0)
+        newOpts = []
+        for i in range(len(vals2)):
+            if(vals2[i] == 0):
+                newOpts.append(opts2[i])
+
+        #nové tahy ohodnotit starým minmax alg.
+        #(počet výher/remíz/proher z aktuální pozice až do konce)
+        #To určí nejvýhodnější tahy proti ideal. i neideal. hráči
+        newVals = [bc.minMax(x,0) for x in newOpts]
+        bc.printBoard(newVals,board2)
+
+    # --- TO TEDA JE ---
+
