@@ -31,16 +31,19 @@ def netTraining(_board, player, log=False):
             else:
                 board.append(1)
 
-    opts = bc.getMoveOptions(board, player)
-    mmvals = [bc.minMax(x, player) for x in opts]
+    #OLD
+    #opts = bc.getMoveOptions(board, player)
+    #mmvals = [bc.minMax(x, player) for x in opts]
 
+    #UPDATED
+    mmOutput = bc.getMoveValues(board, player)
     wantedOut = [0 for i in range(9)]
     takenValue = 0
 
     for i in range(9):
         if(board[i] != 0.5):
             takenValue += 1
-        elif(mmvals[i-takenValue] == max(mmvals)):
+        elif(mmOutput[i-takenValue] == max(mmOutput)):
             wantedOut[i] = 1
 
     global w1, w2, b1, b2
@@ -196,7 +199,7 @@ def gameDecisionTree():
 
         while True:
             try:
-                b = int(input("\nHow many training rounds? (1r = 8:30)\n"))
+                b = int(input("\nHow many training rounds? (1r = 1m max)\n"))
                 break
 
             except ValueError:

@@ -123,12 +123,8 @@ class BoardClass:
 
 
     def mmFunc(self, board, player):
-        #print("mmOPENED")
-        #self.printBoard(board)
         if(self.pWon(board) == self.getOpponent(player)):
             #opponent won
-            #print("Player {} won".format(self.getOpponent(player)))
-            #print("returning -50")
             return -50
 
 
@@ -136,26 +132,16 @@ class BoardClass:
 
         if(len(freePos) == 0):
             #draw
-            #print("drawState")
-            #print("returning 1")
             return 0
         else:
-            #print("pos found {}".format(len(freePos)))
             score = -2
 
             for opt in freePos:
-                #print("board sent")
-                #self.printBoard(opt)
                 singleMoveScore = -self.mmFunc(opt, self.getOpponent(player))
-                #print("board returned")
-                #self.printBoard(opt)
-                #print("score returned {}".format(singleMoveScore))
 
-                #print("score/singleMoveScore ... {}/{}".format(score,singleMoveScore))
                 if(score < singleMoveScore):
                     score = singleMoveScore
 
-            #print("returning score {}".format(score))
             return score
 
 
@@ -219,6 +205,35 @@ class BoardClass:
 
         return value
 
+    def getMoveValues(self, board, playerTurn):
+        values = []
+
+        nextOpts = self.getMoveOptions(board, playerTurn)
+        fvalues = [-self.mmFunc(x, self.getOpponent(playerTurn)) for x in nextOpts]
+
+        if(fvalues.count(50) == 0 and fvalues.count(0) > 1):
+            drawOpts = []
+            for i in range(len(nextOpts)):
+                if(fvalues[i] == 0):
+                    drawOpts.append(nextOpts[i])
+
+            svalues = [self.minMax(x, playerTurn) for x in drawOpts]
+
+            parsedOut = []
+            loop = 0
+            for i in range(len(fvalues)):
+                if(fvalues[i] == 0):
+                    parsedOut.append(svalues[loop])
+                    loop+=1
+                else:
+                    parsedOut.append(fvalues[i])
+
+            values = parsedOut
+        else:
+            values = fvalues
+
+        return values
+
     def getPlayBoard(self, idx=random.randint(0,4519)):
         if(idx >= 0 and idx < len(self.allInOne)):
             return(self.allInOne[idx])
@@ -232,12 +247,16 @@ if __name__ == "__main__":
     # --- TO JE SAKRA DOBREJ SYSTÉM---
 
     #zkušební hry
+    board2 = [  0,0.5,0.5,
+              0.5,0.5,0.5,
+              0.5,0.5,0.5]
+
     board = [  0,0.5,0.5,
-             0.5,0.5,0.5,
+             0.5,  1,0.5,
              0.5,0.5,0.5]
 
-    board2 = [  0,0.5,0.5,
-              0.5,  1,0.5,
+    board3 = [0.5,  1,0.5,
+              0.5,0.5,0.5,
               0.5,0.5,0.5]
 
     #vytvořit list dalších možných her pro akt. hráče
@@ -246,11 +265,13 @@ if __name__ == "__main__":
     #!začít protihráčem akt. hráče
     vals = [-bc.mmFunc(x,0) for x in opts]
 
-    opts2 = bc.getMoveOptions(board2,0)
-    vals2 = [-bc.mmFunc(x,1) for x in opts2]
+    opts2 = bc.getMoveOptions(board2,1)
+    vals2 = [-bc.mmFunc(x,0) for x in opts2]
 
     bc.printBoard(vals,board)
     bc.printBoard(vals2,board2)
+
+    outVals = vals2
 
     #když minimax vyhodnotí všechny ideální konce jako draw bude víc nul
     #a žádný dominantí tah
@@ -266,7 +287,29 @@ if __name__ == "__main__":
         #(počet výher/remíz/proher z aktuální pozice až do konce)
         #To určí nejvýhodnější tahy proti ideal. i neideal. hráči
         newVals = [bc.minMax(x,0) for x in newOpts]
-        bc.printBoard(newVals,board2)
 
+        #Přepsat output
+        outPutFine = []
+        loop = 0
+        for i in range(len(vals2)):
+            if(vals2[i] == 0):
+                outPutFine.append(newVals[loop])
+                loop+=1
+            else:
+                outPutFine.append(vals2[i])
+
+        bc.printBoard(outPutFine,board2)
+
+        print(outPutFine)
+        outVals = outPutFine
     # --- TO TEDA JE ---
 
+    takenValue = 0
+    wantedOut = [0 for i in range(9)]
+    for i in range(9):
+        if(board2[i] != 0.5):
+            takenValue += 1
+        elif(outVals[i-takenValue] == max(outVals)):
+            wantedOut[i] = 1
+
+    print(wantedOut)
