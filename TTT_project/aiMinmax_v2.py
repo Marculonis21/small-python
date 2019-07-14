@@ -65,10 +65,10 @@ def netTraining(_board, player, log=False):
     global avg, loopCount
     loopCount += 1
     if(loopCount == 500):
-        np.save("w1File", w1)
-        np.save("w2File", w2)
-        np.save("b1File", b1)
-        np.save("b2File", b2)
+        np.save("netFiles/w1File", w1)
+        np.save("netFiles/w2File", w2)
+        np.save("netFiles/b1File", b1)
+        np.save("netFiles/b2File", b2)
         loopCount = 0
         tqdm.write("np files saved")
 
@@ -174,10 +174,10 @@ def gameDecisionTree():
                             w2 = _w2
                             b2 = _b2
 
-                            np.save("w1File", w1)
-                            np.save("w2File", w2)
-                            np.save("b1File", b1)
-                            np.save("b2File", b2)
+                            np.save("netFiles/w1File", w1)
+                            np.save("netFiles/w2File", w2)
+                            np.save("netFiles/b1File", b1)
+                            np.save("netFiles/b2File", b2)
 
                             print("Weights were randomized")
                             break
@@ -245,10 +245,10 @@ def gameDecisionTree():
 # 9 output
 def loadNetWeights():
     try:
-        _w1 = np.load("w1File.npy")
-        _w2 = np.load("w2File.npy")
-        _b1 = np.load("b1File.npy")
-        _b2 = np.load("b2File.npy")
+        _w1 = np.load("netFiles/w1File.npy")
+        _w2 = np.load("netFiles/w2File.npy")
+        _b1 = np.load("netFiles/b1File.npy")
+        _b2 = np.load("netFiles/b2File.npy")
         print("Save files found - Weights loaded from files")
     except FileNotFoundError:
         _w1 = 2*np.random.random((9, 81)) - 1

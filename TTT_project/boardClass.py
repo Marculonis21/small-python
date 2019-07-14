@@ -2,8 +2,8 @@ import random
 
 class BoardClass:
     def fileReady(self):
-        file = open("TTT_games.txt")
-        ff = open("TTT_trimGames.txt")
+        file = open("TTT_gamesDir/TTT_games.txt")
+        ff = open("TTT_gamesDir/TTT_trimGames.txt")
         self.lines = file.readlines()
         self.trimlines = ff.readlines()
         file.close()

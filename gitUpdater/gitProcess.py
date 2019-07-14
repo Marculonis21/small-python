@@ -15,5 +15,3 @@ for i in dirs:
         print()
         os.system("git -C {}/ pull".format(i))
         print()
-
-
