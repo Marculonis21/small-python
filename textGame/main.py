@@ -5,14 +5,16 @@ import random as R
 import time
 import math
 
-playMap = ["#####",
-           "#   #",
-           "# . #",
-           "#   #",
-           "#####"]
+playMap = ["#######",
+           "#     #",
+           "#     #",
+           "#  .  #",
+           "#     #",
+           "#     #",
+           "#######"]
 
 WALL = "#"
-WALL_h = 50
+#WALL_h = 50
 
 pieceSize = 50
 playerPos = {}
@@ -23,17 +25,19 @@ PMS = 5
 #viewDistance
 PVD = 200
 #fieldOfView
-FOV = 1
+FOV = 80
 #rayCastFidelity
-RCF = 5
+RCF = 100 
 
 
 def displaying(_pos,_dir):
 
+    rayOutput = []
+
     #for every FOV point send out a ray
     for loop in range(FOV):
         testDir = _dir - (FOV/2) + loop
-        testDir = 0
+
         if(testDir < 0):
             testDir = 360 + testDir
 
@@ -51,10 +55,14 @@ def displaying(_pos,_dir):
             rayX.append(int(_PVD*math.sin(math.radians(testDir))))
             rayY.append(int(_PVD*math.cos(math.radians(testDir))))
 
-        print(rayX,rayY)
+        #print(rayX,rayY)
 
         collision, distance = rayCast(rayX,rayY,_pos)
-        print(collision,distance)
+        #print(collision,distance)
+        rayOutput.append([collision,distance])
+
+    return rayOutput
+
 
 def rayCast(_rayX,_rayY,_pos):
     #Test ray XY coordinates
@@ -100,6 +108,15 @@ def getCollision(x,y, rayX, rayY):
 
     return collision
 
+def borderDraw(win,winX,winY):
+    win.addstr(0,0,"#")
+    win.addstr(winY-2,winX-2,"#")
+    for x in range(0,winX-2):
+        win.addstr(0,x,"#")
+        win.addstr(winY-2,x,"#")
+    for y in range(0,winY-2):
+        win.addstr(y,0,"#")
+        win.addstr(y,winX-2,"#")
 
 def animation():
     win = C.initscr()
@@ -111,24 +128,75 @@ def animation():
     C.noecho()
     C.curs_set(0)
 
+    '''
+    #testArea
+    winX = win.getmaxyx()[1]
+    winY = win.getmaxyx()[0]
+    maxX = winX - 3
+    maxY = winY - 3
+    C.endwin()
+
+    LPR = (maxX - 1) / FOV
+    print(maxX - 1)
+    lastValue = 0
+    for rayIndex in range(FOV):
+
+        actualValue = int(LPR*rayIndex)
+        #print("rayIndex {}".format(rayIndex))
+        #print(lastValue)
+        #print(int(LPR*rayIndex))
+
+        for i in range(actualValue-lastValue):
+            #print("ray {}".format(rayIndex))
+
+        lastValue = actualValue
+
+    quit()
+    #testArea
+    '''
+
     win.clear()
     win.refresh()
     try:
         while True:
-            winX = win.getmaxyx()[1]
-            winY = win.getmaxyx()[0]
+            #clear screen
             win.clear()
 
-            sTime = time.time()
-            win.addstr(0,0,"#")
-            win.addstr(winY-2,winX-2,"#")
-            for x in range(0,winX-2):
-                win.addstr(0,x,"#")
-                win.addstr(winY-2,x,"#")
-            for y in range(0,winY-2):
-                win.addstr(y,0,"#")
-                win.addstr(y,winX-2,"#")
+            winX = win.getmaxyx()[1]
+            winY = win.getmaxyx()[0]
+            maxX = winX - 3
+            maxY = winY - 3
 
+            #get view output from displaying(reycasting)
+            view = displaying(playerPos,playerDir)
+
+            #clear screen
+            win.clear()
+
+            #displayBorder draw
+            borderDraw(win,winX,winY)
+            
+            #linePerRay
+            LPR = (maxX - 1) / FOV
+            lastValue = 0
+            for rayIndex in range(FOV):
+                actualValue = int(LPR*rayIndex)
+
+                for i in range(actualValue-lastValue):
+                    #print("ray {}".format(rayIndex))
+                    for z in range(int(view[rayIndex][1] / 10)):
+                        xxx = lastValue + i
+                        if(z >= maxY/2):
+                            break
+
+                        win.addstr(int(maxY/2) + z, xxx, '#')
+                        win.addstr(int(maxY/2) - z, xxx, '#')
+
+
+                lastValue = actualValue
+
+            #timeDelta frame draw time
+            sTime = time.time()
             while(time.time() - sTime < 1/10):
                 pass
 
@@ -146,6 +214,5 @@ for i in playMap:
         playerPos["x"] = (pieceSize*xxx.index('.')) + pieceSize/2
 
 #displaying(playerPos,playerDir)
-#quit()
 
 animation()
