@@ -7,7 +7,7 @@ import geneticAlg as ga
 
 def nonlin(x, deriv=False):
     if(deriv):
-        return(x*(1-x))
+        return(x*(1-x)) 
 
     return 1/(1+np.exp(-x))
 
@@ -37,7 +37,7 @@ def controller(player, obs):
 
 env = gym.make('CartPole-v0')
 
-population = ga.genPop(50, 25, 3)
+population = ga.genPop(20, 25, 3)
 
 for item in population.species:
     w1 = 2*np.random.random([4,5]) - 1
@@ -52,6 +52,7 @@ for item in population.species:
     for y in range(len(w2)):
         for x in range(len(w2[0])):
             item.append(_w2[y][x])
+
 
 while True:
     for genIter in range(population.popSize):
@@ -84,4 +85,5 @@ while True:
     population.newGen()
     print("Average Fit: {}".format(population.avgFit()))
     print("\n#\n#\n#\nLast gen best fitness: {}\nAverage fitness: {}\n#\n#\n#\n".format(population.bestFitness, population.avgFit()))
-    quit()
+
+env.close()

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import curses as C
-
-import pyglet
-
-import random as R
-import time
+import curses as C 
 import math
+import pyglet
+import queue as Q
+import random as R
+import threading
+import time
 
 playMap = ["WWWWWWW",
            "W     W",
@@ -19,15 +19,11 @@ playMap = ["WWWWWWW",
 WALL = "W"
 #WALL_h = 50
 
+cNum = 1
+
 pieceSize = 50
 playerPos = {}
 playerDir = 0
-
-#playerInputLag
-#num of frames
-PIL = 20
-#actualInputLag
-AIL = -1
 
 #moveSpeed
 PMS = 5
@@ -38,6 +34,11 @@ FOV = 80
 #rayCastFidelity
 RCF = 20
 
+DRAWTIME = 1
+#KEYPRESS
+kp_key = -1
+
+GAMERUNNING = True
 
 
 def displaying(_pos,_dir):
@@ -77,34 +78,9 @@ def displaying(_pos,_dir):
 
     return rayOutput
 
-'''
-def OLDrayCast(_rayX,_rayY,_pos):
-    #Test ray XY coordinates
-
-    rayX = _rayX
-    rayY = _rayY
-
-    #scan map for all pieces
-    for y in range(len(playMap)):
-        _y = list(playMap[y])
-
-        for x in range(len(_y)):
-            if(_y[x] != ' ' and _y[x] != '.'):
-                xPos = x
-                yPos = y
-
-                #Test each part of ray against all objects till collision
-                #and save first collided ray part
-                #(also add playerPos to ray pos to get where the ray really ends! :D)
-                for test in range(RCF):
-                    if(getCollision(xPos, yPos, _pos['x']+rayX[test], _pos['y']+rayY[test])):
-                        if(_y[x] == WALL):
-                            return WALL, test*(PVD/RCF)
-'''
-
 def rayCast(_rayX,_rayY,_pos):
     #Test ray XY coordinates
-
+    
     rayX = _rayX
     rayY = _rayY
 
@@ -141,8 +117,9 @@ def getCollision(x,y, rayX, rayY):
     return collision
 
 def borderDraw(win,winX,winY):
-    win.addstr(0,0,"#")
-    win.addstr(winY-2,winX-2,"#")
+    #win.addstr(0,0,"#")
+    #win.addstr(winY-2,winX-2,"#")
+    
     for x in range(0,winX-2):
         win.addstr(0,x,"#")
         win.addstr(winY-2,x,"#")
@@ -151,6 +128,8 @@ def borderDraw(win,winX,winY):
         win.addstr(y,winX-2,"#")
 
 def viewPrinting(win,winX,winY,view):
+    global cNum
+
     screenWidth = int(winX-1)
     midY = int(winY/2)
 
@@ -184,10 +163,37 @@ def viewPrinting(win,winX,winY,view):
 
         lastValue = actualValue
 
-def animation():
-    global AIL,PIL
+def inputThread(win,DRAWTIME,drawT_q, kp_key,key_q, GAMERUNNING,run_q):
+    DRAWTIME = drawT_q.get()
+    win.timeout(1)
 
+    while GAMERUNNING:
+        key = -1
+
+        if(key_q.empty()):
+            win.addstr(5,R.randint(5,50),str(R.randint(0,9)))
+            key = win.getch()
+
+            if(key != -1):
+                win.addstr(6,R.randint(5,50),str(R.randint(0,9)))
+                kp_key = key
+                key_q.put(kp_key)
+                time.sleep(1/10)
+
+        else:
+            pass
+
+        GAMERUNNING = run_q.get() 
+
+def animation(DRAWTIME, kp_key, GAMERUNNING):
     win = C.initscr()
+
+    key_q = Q.Queue()
+    drawT_q = Q.Queue()
+    run_q = Q.Queue()
+
+    inpThread = threading.Thread(target=inputThread,
+                                 args=(win,DRAWTIME,drawT_q, kp_key,key_q, GAMERUNNING,run_q))
 
     C.start_color()
     C.use_default_colors()
@@ -203,53 +209,68 @@ def animation():
 
     win.clear()
     win.refresh()
+
+    written = False
     
-
     ### DRAWING LOOP
-    try:
-        while True:
-            #clear screen
-            win.clear()
+    while GAMERUNNING:
+        run_q.put(GAMERUNNING)
 
-            winX = win.getmaxyx()[1]
-            winY = win.getmaxyx()[0]
+        startTime = time.time()
 
-            #displayBorder draw
-            borderDraw(win,winX,winY)
-            
-            #get view output from displaying(raycasting)
-            view = displaying(playerPos,playerDir)
+        #16:9
+        #winY = int(win.getmaxyx()[0])
+        #winX = int((winY/9) * 16)
 
-            #display all from rayCast (walls and stuff)
-            viewPrinting(win,winX,winY,view)
+        winX = int(win.getmaxyx()[1])
+        winY = int(win.getmaxyx()[0])
 
-            if(AIL == -1):
-                key = ''
-                key = win.getch()
-                win.addstr(10,R.randint(10,20),str(key))
-                if(key != None):
-                    AIL = 0
+        #displayBorder draw
+        borderDraw(win,winX,winY)
+        
+        #get view output from displaying(raycasting)
+        view = displaying(playerPos,playerDir)
 
-            win.addstr(20,R.randint(10,20), "x")
+        #display all from rayCast (walls and stuff)
+        viewPrinting(win,winX,winY,view)            
 
-            
-            #window draw delta
-            startT = time.time()
-            while time.time() - startT >= 1/20:
-                break
-            
-            if(AIL == PIL):
-                AIL = -1
-            elif(AIL != -1):
-                AIL += 1
+        win.addstr(13,13,str(R.randint(0,9)))
 
-            win.refresh()
-    ### DRAWING LOOP
+        if not(key_q.empty()):
+            kp_key = key_q.get()
+            win.addstr(15,15,str(R.randint(0,9)))
+            written = True
 
-    except KeyboardInterrupt:
-        C.echo()
-        C.endwin()
-        pass
+            #if(C.Ke)
+        elif(written == True):
+            written = False
+        
+        #DRAWTIME measurement
+        endTime = time.time()
+        DRAWTIME = endTime-startTime
+        drawT_q.put(DRAWTIME)
+
+        if not(inpThread.is_alive()):
+            #if not(Tstarted):
+            inpThread.start()
+
+        stime = time.time()
+        while time.time() - stime <= 1/60:
+            pass
+
+        win.refresh()
+        ### DRAWING LOOP
+
+
+    if(inpThread.is_alive()):
+        GAMERUNNING = False
+        run_q.put(GAMERUNNING)
+
+        inpThread.join()
+
+    C.echo()
+    C.endwin()
+
 
 for y in range(len(playMap)):
     _y = list(playMap[y])
@@ -261,4 +282,4 @@ for y in range(len(playMap)):
 
 #displaying(playerPos,playerDir)
 
-animation()
+animation(DRAWTIME, kp_key, GAMERUNNING)
