@@ -3,21 +3,29 @@
 import curses as C 
 import math
 import pyglet
-import queue as Q
 import random as R
-import threading
 import time
+import sys
+import termios
+import tty
+import os
 
-playMap = ["WWWWWWW",
-           "W     W",
-           "W     W",
-           "W  .  W",
-           "W     W",
-           "W     W",
-           "WWWWWWW"]
+playMap = ["WRWRWRWWRWRWRW",
+           "W            W",
+           "R            R",
+           "W  .     R   W",
+           "R        R   R",
+           "W        R   W",
+           "WRWRWRRWRWRWRW"]
 
-WALL = "W"
+
 #WALL_h = 50
+
+inputKeys =  {'w':'forward', 
+              's':'backward',
+              'a':'left',
+              'd':'right',
+              'P':'exit'}
 
 cNum = 1
 
@@ -27,18 +35,14 @@ playerDir = 0
 
 #moveSpeed
 PMS = 5
+#rotationSpeed
+PRS = 3
 #viewDistance
-PVD = 150
+PVD = 300
 #fieldOfView
 FOV = 80
 #rayCastFidelity
-RCF = 20
-
-DRAWTIME = 1
-#KEYPRESS
-kp_key = -1
-
-GAMERUNNING = True
+RCF = 15
 
 
 def displaying(_pos,_dir):
@@ -51,6 +55,9 @@ def displaying(_pos,_dir):
 
         if(testDir < 0):
             testDir = 360 + testDir
+
+        if(testDir >= 360):
+            testDir = testDir - 360
 
         #submodules of ray
         #works as number guessing game (lower/higher)
@@ -67,7 +74,7 @@ def displaying(_pos,_dir):
             rayY = (int(_PVD*math.cos(math.radians(testDir))))
             collision = rayCast(rayX,rayY,_pos)
 
-            if(collision == WALL):
+            if(collision == 'R' or collision == 'W'):
                 collided = True
                 rayOutput.append([collision, _PVD])
                 break
@@ -97,12 +104,15 @@ def rayCast(_rayX,_rayY,_pos):
                 #and save first collided ray part
                 #(also add playerPos to ray pos to get where the ray really ends! :D)
                 if(getCollision(xPos, yPos, _pos['x']+rayX, _pos['y']+rayY)):
-                    if(_y[x] == WALL):
-                        return WALL 
+                    if(_y[x] == 'R'):
+                        #return WALL 
+                        return 'R'
+                    if(_y[x] == 'W'):
+                        return 'W'
 
     return ' '
 
-def getCollision(x,y, rayX, rayY):
+def getCollision(x,y, itemX, itemY):
     lowerBoundX = pieceSize*x - pieceSize/2
     upperBoundX = pieceSize*x + pieceSize/2
 
@@ -110,8 +120,8 @@ def getCollision(x,y, rayX, rayY):
     upperBoundY = pieceSize*y + pieceSize/2
      
     collision = False
-    if(rayX >= lowerBoundX and rayX <= upperBoundX):
-        if(rayY >= lowerBoundY and rayY <= upperBoundY):
+    if(itemX >= lowerBoundX and itemX <= upperBoundX):
+        if(itemY >= lowerBoundY and itemY <= upperBoundY):
             collision = True
 
     return collision
@@ -142,19 +152,25 @@ def viewPrinting(win,winX,winY,view):
         actualValue = int(LPR*rayIndex)
 
         for i in range(actualValue-lastValue):
-            for z in range(int(view[rayIndex][1] / 10)):
+            for z in range(int(midY - 3 -view[rayIndex][1] / 10)):
                 xxx = lastValue + i
 
                 #strop??
                 if(z >= midY):
                     break
                 
-                if(view[rayIndex][0] == WALL):
-                    win.addstr(int(midY) + z, xxx+1, WALL, C.color_pair(lastC))
-                    win.addstr(int(midY) - z, xxx+1, WALL, C.color_pair(lastC))
+                #if(view[rayIndex][0] == WALL):
+                #    win.addstr(int(midY) + z, xxx+1, WALL, C.color_pair(lastC))
+                #    win.addstr(int(midY) - z, xxx+1, WALL, C.color_pair(lastC))
+                if(view[rayIndex][0] == 'R'):
+                    win.addstr(int(midY) + z, xxx+1, '#', C.color_pair(0))
+                    win.addstr(int(midY) - z, xxx+1, '#', C.color_pair(0))
+                elif(view[rayIndex][0] == 'W'):
+                    win.addstr(int(midY) + z, xxx+1, '#', C.color_pair(2))
+                    win.addstr(int(midY) - z, xxx+1, '#', C.color_pair(2))
                 else:
-                    win.addstr(int(midY) + z, xxx+1, ' ', C.color_pair(lastC))
-                    win.addstr(int(midY) - z, xxx+1, ' ', C.color_pair(lastC))
+                    win.addstr(int(midY) + z, xxx+1, ' ', C.color_pair(1))
+                    win.addstr(int(midY) - z, xxx+1, ' ', C.color_pair(1))
 
         if(lastC == 1):
             lastC = 2
@@ -163,44 +179,101 @@ def viewPrinting(win,winX,winY,view):
 
         lastValue = actualValue
 
-def inputThread(win,DRAWTIME,drawT_q, kp_key,key_q, GAMERUNNING,run_q):
-    DRAWTIME = drawT_q.get()
-    win.timeout(1)
+def getMap(playerPos):
+    actMap = []
+    for y in range(len(playMap)):
+        row = []
+        _y = list(playMap[y])
 
-    while GAMERUNNING:
-        key = -1
+        for x in range(len(_y)):
+            if(getCollision(x,y,playerPos['x'],playerPos['y'])):
+                _playerPX = x
+                _playerPY = y
+                row += 'O'
+            elif(_y[x] == '.'):
+                row += ' '
+            else:
+                row += str(_y[x])
 
-        if(key_q.empty()):
-            win.addstr(5,R.randint(5,50),str(R.randint(0,9)))
-            key = win.getch()
+        actMap += [row]
 
-            if(key != -1):
-                win.addstr(6,R.randint(5,50),str(R.randint(0,9)))
-                kp_key = key
-                key_q.put(kp_key)
-                time.sleep(1/10)
 
-        else:
-            pass
+    if(315 < playerDir or playerDir < 45):
+        actMap[_playerPX+1][_playerPY] = '-'
+    if(45 < playerDir and playerDir < 135):
+        actMap[_playerPX][_playerPY+1] = '|'
+    if(135 < playerDir and playerDir < 225):
+        actMap[_playerPX-1][_playerPY] = '-'
+    if(225 < playerDir and playerDir < 315):
+        actMap[_playerPX][_playerPY-1] = '|'
 
-        GAMERUNNING = run_q.get() 
 
-def animation(DRAWTIME, kp_key, GAMERUNNING):
+    return actMap
+
+def getch():
+    # https://www.jonwitts.co.uk/archives/896
+    # adapted from https://github.com/recantha/EduKit3-RC-Keyboard/blob/master/rc_keyboard.py
+    #
+    # Works well better than Curses getch (lag on input - pressing even if no
+    # input is being done!)
+
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        ch = sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd,termios.TCSADRAIN,old_settings)
+    return ch
+
+def inputHandling(key):
+    global playerPos, playerDir
+
+    if(inputKeys[key] == 'forward'):
+
+        moveX = (int(PMS*math.sin(math.radians(playerDir))))
+        moveY = (int(PMS*math.cos(math.radians(playerDir))))
+
+        playerPos['x'] += moveX
+        playerPos['y'] += moveY
+
+    if(inputKeys[key] == 'left'):
+
+        playerDir -= PRS
+        if(playerDir < 0):
+            playerDir = 360 + playerDir 
+
+        if(playerDir >= 360):
+            playerDir = playerDir - 360
+
+    if(inputKeys[key] == 'right'):
+        
+        playerDir += PRS
+        if(playerDir < 0):
+            playerDir = 360 + playerDir 
+
+        if(playerDir >= 360):
+            playerDir = playerDir - 360
+
+def animation():
     win = C.initscr()
 
-    key_q = Q.Queue()
-    drawT_q = Q.Queue()
-    run_q = Q.Queue()
+    # DRAWPHASE 0
+    # INPUTPHASE 1
+    PHASE = 0
 
-    inpThread = threading.Thread(target=inputThread,
-                                 args=(win,DRAWTIME,drawT_q, kp_key,key_q, GAMERUNNING,run_q))
+    GAMERUNNING = True
+    
+    INPUT = False
+    key = ''
 
     C.start_color()
     C.use_default_colors()
     
     #color pairs
-    C.init_pair(1,C.COLOR_GREEN, -1)
-    C.init_pair(2,C.COLOR_RED, -1)
+    C.init_pair(0, C.COLOR_RED, -1)
+    C.init_pair(1, C.COLOR_WHITE, -1)
+    C.init_pair(2, C.COLOR_GREEN, -1)
 
     # hide cursor
     C.noecho()
@@ -209,64 +282,80 @@ def animation(DRAWTIME, kp_key, GAMERUNNING):
 
     win.clear()
     win.refresh()
-
-    written = False
     
-    ### DRAWING LOOP
     while GAMERUNNING:
-        run_q.put(GAMERUNNING)
+        if(PHASE == 0):
+            ### DRAW LOOP
+            win.clear()
 
-        startTime = time.time()
+            #16:9
+            #winY = int(win.getmaxyx()[0])
+            #winX = int((winY/9) * 16)
 
-        #16:9
-        #winY = int(win.getmaxyx()[0])
-        #winX = int((winY/9) * 16)
+            winX = int(win.getmaxyx()[1])
+            winY = int(win.getmaxyx()[0])
 
-        winX = int(win.getmaxyx()[1])
-        winY = int(win.getmaxyx()[0])
+            #displayBorder draw
+            borderDraw(win,winX,winY)
+            
+            #get view output from displaying(raycasting)
+            view = displaying(playerPos,playerDir)
 
-        #displayBorder draw
-        borderDraw(win,winX,winY)
-        
-        #get view output from displaying(raycasting)
-        view = displaying(playerPos,playerDir)
+            #display all from rayCast (walls and stuff)
+            viewPrinting(win,winX,winY,view)            
 
-        #display all from rayCast (walls and stuff)
-        viewPrinting(win,winX,winY,view)            
+            win.addstr(13,13,str(R.randint(0,9)))
 
-        win.addstr(13,13,str(R.randint(0,9)))
+            #if(INPUT):
+            #    win.addstr(6,6,str(key))
+            #    INPUT = False
 
-        if not(key_q.empty()):
-            kp_key = key_q.get()
-            win.addstr(15,15,str(R.randint(0,9)))
-            written = True
+            #win.addstr(5,5,"DRAWPHASE")
+            win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
+            win.addstr(4,3,"DIR: {}".format(playerDir))
+            rootP = 5
+            #mmmMap = getMap(playerPos)
 
-            #if(C.Ke)
-        elif(written == True):
-            written = False
-        
-        #DRAWTIME measurement
-        endTime = time.time()
-        DRAWTIME = endTime-startTime
-        drawT_q.put(DRAWTIME)
+            #C.endwin()
+            #C.echo()
+            #C.curs_set(0)
 
-        if not(inpThread.is_alive()):
-            #if not(Tstarted):
-            inpThread.start()
+            ''' jjjjj
+            for i in range(len(playMap)):
+                for x in range(len(playMap[i])):
+                    win.addstr(rootP + i, 3+x, mmmMap[x][i])
+                    #print(mmmMap[x][i],end='')
+                #print()
 
-        stime = time.time()
-        while time.time() - stime <= 1/60:
-            pass
+            #print(playMap)
 
-        win.refresh()
-        ### DRAWING LOOP
+            #quit()
+            '''
+            PHASE = 1
+            win.refresh()
+            ### DRAW LOOP
+
+        elif(PHASE == 1):
+            ### INPUT LOOP
+            win.addstr(5,5,"INPUTPHASE")
+            key = getch()
+            inputHandling(key)
+            if(key == 'P'):
+                GAMERUNNING = False
+
+            #INPUT = True
+            PHASE = 0
+
+    C.endwin()
+    C.echo()
+    C.curs_set(0)
 
 
-    if(inpThread.is_alive()):
-        GAMERUNNING = False
-        run_q.put(GAMERUNNING)
+    #if(inpThread.is_alive()):
+    #    GAMERUNNING = False
+    #    run_q.put(GAMERUNNING)
 
-        inpThread.join()
+    #    inpThread.join()
 
     C.echo()
     C.endwin()
@@ -279,7 +368,8 @@ for y in range(len(playMap)):
         if(_y[x] == '.'):
             playerPos['y'] = (pieceSize*y)
             playerPos['x'] = (pieceSize*x)
+playerDir = 0
 
 #displaying(playerPos,playerDir)
 
-animation(DRAWTIME, kp_key, GAMERUNNING)
+animation()
