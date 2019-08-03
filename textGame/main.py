@@ -10,14 +10,15 @@ import termios
 import tty
 import os
 
-playMap = ["WRWRWRWWRWRWRW",
+playMap = ["WWWWWWWWWWWWWW",
            "W            W",
-           "R            R",
-           "W  .     R   W",
-           "R        R   R",
-           "W        R   W",
-           "WRWRWRRWRWRWRW"]
+           "W            W",
+           "W  .     W   W",
+           "W        W   W",
+           "W        W   W",
+           "WWWWWWWWWWWWWW"]
 
+WALL = "RGW"
 
 #WALL_h = 50
 
@@ -34,15 +35,15 @@ playerPos = {}
 playerDir = 0
 
 #moveSpeed
-PMS = 5
+PMS = 8
 #rotationSpeed
-PRS = 3
+PRS = 5
 #viewDistance
-PVD = 300
+PVD = 400
 #fieldOfView
-FOV = 80
+FOV = 80#VARIABLE - columns
 #rayCastFidelity
-RCF = 15
+RCF = 50
 
 
 def displaying(_pos,_dir):
@@ -52,12 +53,6 @@ def displaying(_pos,_dir):
     #+1 - fine number of rays (symetry)
     for loop in range(FOV+1):
         testDir = _dir - (FOV/2) + loop
-
-        if(testDir < 0):
-            testDir = 360 + testDir
-
-        if(testDir >= 360):
-            testDir = testDir - 360
 
         #submodules of ray
         #works as number guessing game (lower/higher)
@@ -69,12 +64,15 @@ def displaying(_pos,_dir):
         for testLength in range(1,RCF+1):
             #test PVD
             _PVD = testLength*_PVDP
+            forwardX = math.sin(math.radians(testDir))
+            forwardY = math.cos(math.radians(testDir))
 
-            rayX = (int(_PVD*math.sin(math.radians(testDir))))
-            rayY = (int(_PVD*math.cos(math.radians(testDir))))
+            rayX = int(_PVD*forwardX)
+            rayY = int(_PVD*forwardY)
+
             collision = rayCast(rayX,rayY,_pos)
 
-            if(collision == 'R' or collision == 'W'):
+            if(collision != ' '):
                 collided = True
                 rayOutput.append([collision, _PVD])
                 break
@@ -104,11 +102,10 @@ def rayCast(_rayX,_rayY,_pos):
                 #and save first collided ray part
                 #(also add playerPos to ray pos to get where the ray really ends! :D)
                 if(getCollision(xPos, yPos, _pos['x']+rayX, _pos['y']+rayY)):
-                    if(_y[x] == 'R'):
-                        #return WALL 
-                        return 'R'
-                    if(_y[x] == 'W'):
-                        return 'W'
+                    #WALL
+                    if(_y[x] in WALL):
+                        return _y[x]
+
 
     return ' '
 
@@ -147,36 +144,30 @@ def viewPrinting(win,winX,winY,view):
     LPR = screenWidth / FOV
 
     lastValue = 0
-    lastC = 1
     for rayIndex in range(FOV):
         actualValue = int(LPR*rayIndex)
 
         for i in range(actualValue-lastValue):
-            for z in range(int(midY - 3 -view[rayIndex][1] / 10)):
+            for z in range(int(midY - view[rayIndex][1]/10)):
                 xxx = lastValue + i
 
                 #strop??
                 if(z >= midY):
                     break
                 
-                #if(view[rayIndex][0] == WALL):
-                #    win.addstr(int(midY) + z, xxx+1, WALL, C.color_pair(lastC))
-                #    win.addstr(int(midY) - z, xxx+1, WALL, C.color_pair(lastC))
-                if(view[rayIndex][0] == 'R'):
-                    win.addstr(int(midY) + z, xxx+1, '#', C.color_pair(0))
-                    win.addstr(int(midY) - z, xxx+1, '#', C.color_pair(0))
-                elif(view[rayIndex][0] == 'W'):
-                    win.addstr(int(midY) + z, xxx+1, '#', C.color_pair(2))
-                    win.addstr(int(midY) - z, xxx+1, '#', C.color_pair(2))
+                if(view[rayIndex][0] in WALL):
+                    if(view[rayIndex][1] < 150):
+                        win.addstr(int(midY) + z, xxx+1, '#', C.A_BOLD)
+                        win.addstr(int(midY) - z, xxx+1, '#', C.A_BOLD)
+                    elif(view[rayIndex][1] < 200):
+                        win.addstr(int(midY) + z, xxx+1, '#')
+                        win.addstr(int(midY) - z, xxx+1, '#')
+                    elif(view[rayIndex][1] < 250):
+                        win.addstr(int(midY) + z, xxx+1, '#', C.A_DIM)
+                        win.addstr(int(midY) - z, xxx+1, '#', C.A_DIM)
                 else:
-                    win.addstr(int(midY) + z, xxx+1, ' ', C.color_pair(1))
-                    win.addstr(int(midY) - z, xxx+1, ' ', C.color_pair(1))
-
-        if(lastC == 1):
-            lastC = 2
-        else:
-            lastC = 1
-
+                    win.addstr(int(midY) + z, xxx+1, ' ')
+                    win.addstr(int(midY) - z, xxx+1, ' ')
         lastValue = actualValue
 
 def getMap(playerPos):
@@ -229,33 +220,42 @@ def getch():
 def inputHandling(key):
     global playerPos, playerDir
 
-    if(inputKeys[key] == 'forward'):
+    if(key in inputKeys):
+        if(inputKeys[key] == 'forward'):
 
-        moveX = (int(PMS*math.sin(math.radians(playerDir))))
-        moveY = (int(PMS*math.cos(math.radians(playerDir))))
+            moveX = (int(PMS*math.sin(math.radians(playerDir))))
+            moveY = (int(PMS*math.cos(math.radians(playerDir))))
 
-        playerPos['x'] += moveX
-        playerPos['y'] += moveY
+            playerPos['x'] += moveX
+            playerPos['y'] += moveY
 
-    if(inputKeys[key] == 'left'):
+        if(inputKeys[key] == 'backward'):
 
-        playerDir -= PRS
-        if(playerDir < 0):
-            playerDir = 360 + playerDir 
+            moveX = (int(PMS*math.sin(math.radians(playerDir))))
+            moveY = (int(PMS*math.cos(math.radians(playerDir))))
 
-        if(playerDir >= 360):
-            playerDir = playerDir - 360
+            playerPos['x'] -= moveX
+            playerPos['y'] -= moveY
 
-    if(inputKeys[key] == 'right'):
-        
-        playerDir += PRS
-        if(playerDir < 0):
-            playerDir = 360 + playerDir 
+        if(inputKeys[key] == 'left'):
 
-        if(playerDir >= 360):
-            playerDir = playerDir - 360
+            playerDir -= PRS
+            if(playerDir < 0):
+                playerDir = 360 + playerDir 
 
-def animation():
+            if(playerDir >= 360):
+                playerDir = playerDir - 360
+
+        if(inputKeys[key] == 'right'):
+            
+            playerDir += PRS
+            if(playerDir < 0):
+                playerDir = 360 + playerDir 
+
+            if(playerDir >= 360):
+                playerDir = playerDir - 360
+
+def mainProgram():
     win = C.initscr()
 
     # DRAWPHASE 0
@@ -271,9 +271,9 @@ def animation():
     C.use_default_colors()
     
     #color pairs
-    C.init_pair(0, C.COLOR_RED, -1)
+    C.init_pair(0, C.COLOR_WHITE, -1)
     C.init_pair(1, C.COLOR_WHITE, -1)
-    C.init_pair(2, C.COLOR_GREEN, -1)
+    C.init_pair(2, C.COLOR_WHITE, -1)
 
     # hide cursor
     C.noecho()
@@ -294,6 +294,9 @@ def animation():
 
             winX = int(win.getmaxyx()[1])
             winY = int(win.getmaxyx()[0])
+            global FOV
+            #FOV = winX-2
+
 
             #displayBorder draw
             borderDraw(win,winX,winY)
@@ -331,6 +334,7 @@ def animation():
 
             #quit()
             '''
+
             PHASE = 1
             win.refresh()
             ### DRAW LOOP
@@ -360,7 +364,6 @@ def animation():
     C.echo()
     C.endwin()
 
-
 for y in range(len(playMap)):
     _y = list(playMap[y])
 
@@ -368,8 +371,9 @@ for y in range(len(playMap)):
         if(_y[x] == '.'):
             playerPos['y'] = (pieceSize*y)
             playerPos['x'] = (pieceSize*x)
-playerDir = 0
+
 
 #displaying(playerPos,playerDir)
+#quit()
 
-animation()
+mainProgram()

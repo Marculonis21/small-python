@@ -1,9 +1,0 @@
-Input + kreslení
-################
-
-Dva thready, hlavní - kreslení, vedlejší - win.getch() v while True loop 
-(pozor na ukončování obou vláken najednou!)
-
-Vše se nakreslí + výpočty -> sleep/stop na neurčito** -> input thread 
-čeká v while na input -> jakmile ho dostane if(key != nic) sleep na dobu 
-potřebnou k kreslení + výpočty (globální var přes time - změřit draw loop)
