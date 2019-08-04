@@ -13,9 +13,9 @@ import os
 playMap = ["WWWWWWWWWWWWWW",
            "W            W",
            "W            W",
-           "W  .     W   W",
-           "W        W   W",
-           "W        W   W",
+           "W  .    WW   W",
+           "W            W",
+           "W            W",
            "WWWWWWWWWWWWWW"]
 
 WALL = "RGW"
@@ -52,7 +52,7 @@ def displaying(_pos,_dir):
     #for every FOV point send out a ray
     #+1 - fine number of rays (symetry)
     for loop in range(FOV+1):
-        testDir = _dir - (FOV/2) + loop
+        testDir = _dir - int(FOV/2) + loop
 
         #submodules of ray
         #works as number guessing game (lower/higher)
@@ -67,8 +67,17 @@ def displaying(_pos,_dir):
             forwardX = math.sin(math.radians(testDir))
             forwardY = math.cos(math.radians(testDir))
 
-            rayX = int(_PVD*forwardX)
-            rayY = int(_PVD*forwardY)
+            #rayX = int(_PVD*forwardX)
+            #rayY = int(_PVD*forwardY)
+
+            #print(testDir-_dir)
+            N = int(_PVD/math.cos(math.radians(testDir-_dir)))
+
+            rayX = int(N*math.sin(math.radians(testDir)))
+            rayY = int(N*math.cos(math.radians(testDir)))
+
+            #print(rayX,rayY)
+            #continue
 
             collision = rayCast(rayX,rayY,_pos)
 
@@ -80,7 +89,6 @@ def displaying(_pos,_dir):
         if not (collided):
             rayOutput.append([' ', PVD])
             
-
     return rayOutput
 
 def rayCast(_rayX,_rayY,_pos):
@@ -156,13 +164,13 @@ def viewPrinting(win,winX,winY,view):
                     break
                 
                 if(view[rayIndex][0] in WALL):
-                    if(view[rayIndex][1] < 150):
+                    if(view[rayIndex][1] < 100):
                         win.addstr(int(midY) + z, xxx+1, '#', C.A_BOLD)
                         win.addstr(int(midY) - z, xxx+1, '#', C.A_BOLD)
                     elif(view[rayIndex][1] < 200):
                         win.addstr(int(midY) + z, xxx+1, '#')
                         win.addstr(int(midY) - z, xxx+1, '#')
-                    elif(view[rayIndex][1] < 250):
+                    elif(view[rayIndex][1] < PVD):
                         win.addstr(int(midY) + z, xxx+1, '#', C.A_DIM)
                         win.addstr(int(midY) - z, xxx+1, '#', C.A_DIM)
                 else:
