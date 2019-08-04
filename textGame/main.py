@@ -13,7 +13,7 @@ import os
 playMap = ["WWWWWWWWWWWWWW",
            "W            W",
            "W            W",
-           "W  .    WW   W",
+           "W  .    W    W",
            "W            W",
            "W            W",
            "WWWWWWWWWWWWWW"]
@@ -156,26 +156,41 @@ def viewPrinting(win,winX,winY,view):
         actualValue = int(LPR*rayIndex)
 
         for i in range(actualValue-lastValue):
-            for z in range(int(midY - view[rayIndex][1]/10)):
-                xxx = lastValue + i
+            height_HALF = int(midY - view[rayIndex][1]/15)
 
+            xPos = lastValue + i
+
+            for z in range(int(midY - view[rayIndex][1]/15)):
                 #strop??
                 if(z >= midY):
                     break
                 
                 if(view[rayIndex][0] in WALL):
                     if(view[rayIndex][1] < 100):
-                        win.addstr(int(midY) + z, xxx+1, '#', C.A_BOLD)
-                        win.addstr(int(midY) - z, xxx+1, '#', C.A_BOLD)
+                        win.addstr(midY + z, xPos+1, '#', C.color_pair(0) + C.A_BOLD)
+                        win.addstr(midY - z, xPos+1, '#', C.color_pair(0) + C.A_BOLD)
                     elif(view[rayIndex][1] < 200):
-                        win.addstr(int(midY) + z, xxx+1, '#')
-                        win.addstr(int(midY) - z, xxx+1, '#')
+                        win.addstr(midY + z, xPos+1, '#', C.color_pair(0))
+                        win.addstr(midY - z, xPos+1, '#', C.color_pair(0))
                     elif(view[rayIndex][1] < PVD):
-                        win.addstr(int(midY) + z, xxx+1, '#', C.A_DIM)
-                        win.addstr(int(midY) - z, xxx+1, '#', C.A_DIM)
+                        win.addstr(midY + z, xPos+1, '#', C.color_pair(0) + C.A_DIM)
+                        win.addstr(midY - z, xPos+1, '#', C.color_pair(0) + C.A_DIM)
                 else:
-                    win.addstr(int(midY) + z, xxx+1, ' ')
-                    win.addstr(int(midY) - z, xxx+1, ' ')
+                    win.addstr(int(midY) + z, xPos+1, ' ')
+                    win.addstr(int(midY) - z, xPos+1, ' ')
+
+            #FLOOR distance from player
+            DFP = midY - height_HALF
+            for i in range(DFP):
+                if(i < 3):
+                    win.addstr(winY-3-i, xPos+1, 'O', C.A_DIM)
+                elif(i < 9):
+                    win.addstr(winY-3-i, xPos+1, '-', C.A_DIM)
+                elif(i < 20):
+                    win.addstr(winY-3-i, xPos+1, '.', C.A_DIM)
+                else:
+                    win.addstr(winY-3-i, xPos+1, ' ', C.A_DIM)
+
         lastValue = actualValue
 
 def getMap(playerPos):
@@ -197,14 +212,14 @@ def getMap(playerPos):
         actMap += [row]
 
 
-    if(315 < playerDir or playerDir < 45):
-        actMap[_playerPX+1][_playerPY] = '-'
-    if(45 < playerDir and playerDir < 135):
-        actMap[_playerPX][_playerPY+1] = '|'
-    if(135 < playerDir and playerDir < 225):
-        actMap[_playerPX-1][_playerPY] = '-'
-    if(225 < playerDir and playerDir < 315):
-        actMap[_playerPX][_playerPY-1] = '|'
+    #if(315 < playerDir or playerDir < 45):
+    #    actMap[_playerPX+1][_playerPY] = '-'
+    #if(45 < playerDir and playerDir < 135):
+    #    actMap[_playerPX][_playerPY+1] = '|'
+    #if(135 < playerDir and playerDir < 225):
+    #    actMap[_playerPX-1][_playerPY] = '-'
+    #if(225 < playerDir and playerDir < 315):
+    #    actMap[_playerPX][_playerPY-1] = '|'
 
 
     return actMap
@@ -275,13 +290,13 @@ def mainProgram():
     INPUT = False
     key = ''
 
+
+    # 0:black, 1:red, 2:green, 3:yellow, 4:blue, 5:magenta, 6:cyan, and 7:white
+    #color pairs
     C.start_color()
     C.use_default_colors()
-    
-    #color pairs
-    C.init_pair(0, C.COLOR_WHITE, -1)
-    C.init_pair(1, C.COLOR_WHITE, -1)
-    C.init_pair(2, C.COLOR_WHITE, -1)
+    C.init_pair(0, C.COLOR_WHITE, 1)
+    C.init_pair(1, C.COLOR_BLACK, -1)
 
     # hide cursor
     C.noecho()
@@ -302,6 +317,12 @@ def mainProgram():
 
             winX = int(win.getmaxyx()[1])
             winY = int(win.getmaxyx()[0])
+            #C.endwin()
+            #C.echo()
+            #C.curs_set(0)
+            #print(winY)
+            #quit()
+
             global FOV
             #FOV = winX-2
 
@@ -324,24 +345,13 @@ def mainProgram():
             #win.addstr(5,5,"DRAWPHASE")
             win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
             win.addstr(4,3,"DIR: {}".format(playerDir))
-            rootP = 5
-            #mmmMap = getMap(playerPos)
+            rootP = 15
 
-            #C.endwin()
-            #C.echo()
-            #C.curs_set(0)
-
-            ''' jjjjj
+            mmmMap = getMap(playerPos)
             for i in range(len(playMap)):
                 for x in range(len(playMap[i])):
-                    win.addstr(rootP + i, 3+x, mmmMap[x][i])
-                    #print(mmmMap[x][i],end='')
-                #print()
+                    win.addstr(rootP - i, rootP+x, mmmMap[i][x])
 
-            #print(playMap)
-
-            #quit()
-            '''
 
             PHASE = 1
             win.refresh()
