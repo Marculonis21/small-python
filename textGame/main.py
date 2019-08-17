@@ -31,6 +31,7 @@ inputKeys =  {'w':'forward',
 cNum = 1
 
 pieceSize = 50
+cornerSize = 10
 playerPos = {}
 playerDir = 0
 
@@ -79,15 +80,15 @@ def displaying(_pos,_dir):
             #print(rayX,rayY)
             #continue
 
-            collision = rayCast(rayX,rayY,_pos)
+            collision, corner = rayCast(rayX,rayY,_pos)
 
             if(collision != ' '):
                 collided = True
-                rayOutput.append([collision, _PVD])
+                rayOutput.append([collision, _PVD, corner])
                 break
 
         if not (collided):
-            rayOutput.append([' ', PVD])
+            rayOutput.append([' ', PVD, corner])
             
     return rayOutput
 
@@ -109,13 +110,14 @@ def rayCast(_rayX,_rayY,_pos):
                 #Test each part of ray against all objects till collision
                 #and save first collided ray part
                 #(also add playerPos to ray pos to get where the ray really ends! :D)
-                if(getCollision(xPos, yPos, _pos['x']+rayX, _pos['y']+rayY)):
+                col, corner = getCollision(xPos, yPos, _pos['x']+rayX, _pos['y']+rayY)
+                if(col):
                     #WALL
                     if(_y[x] in WALL):
-                        return _y[x]
+                        return _y[x], corner
 
 
-    return ' '
+    return ' ', False
 
 def getCollision(x,y, itemX, itemY):
     lowerBoundX = pieceSize*x - pieceSize/2
@@ -125,11 +127,24 @@ def getCollision(x,y, itemX, itemY):
     upperBoundY = pieceSize*y + pieceSize/2
      
     collision = False
+    corner = False
     if(itemX >= lowerBoundX and itemX <= upperBoundX):
         if(itemY >= lowerBoundY and itemY <= upperBoundY):
             collision = True
 
-    return collision
+            #BlockCorner
+            if(lowerBoundX <= itemX <= lowerBoundX+cornerSize):
+                if(lowerBoundY <= itemY <= lowerBoundY+cornerSize):
+                    corner = True
+                #if(upperBoundY >= itemY >= upperBoundY-cornerSize):
+                #    corner = True
+            if(upperBoundX >= itemX >= upperBoundX-cornerSize):
+                #if(lowerBoundY <= itemY <= lowerBoundY+cornerSize):
+                #    corner = True
+                if(upperBoundY >= itemY >= upperBoundY-cornerSize):
+                    corner = True
+
+    return collision, corner
 
 def borderDraw(win,winX,winY):
     #win.addstr(0,0,"#")
@@ -145,7 +160,7 @@ def borderDraw(win,winX,winY):
 def viewPrinting(win,winX,winY,view):
     global cNum
 
-    screenWidth = int(winX-1)
+    screenWidth = int(winX+1)
     midY = int(winY/2)
 
     #linePerRay
@@ -167,14 +182,28 @@ def viewPrinting(win,winX,winY,view):
                 
                 if(view[rayIndex][0] in WALL):
                     if(view[rayIndex][1] < 100):
-                        win.addstr(midY + z, xPos+1, '#', C.color_pair(0) + C.A_BOLD)
-                        win.addstr(midY - z, xPos+1, '#', C.color_pair(0) + C.A_BOLD)
+                        win.addstr(midY + z, xPos+1, '#', C.color_pair(1) + C.A_BOLD)
+                        win.addstr(midY - z, xPos+1, '#', C.color_pair(1) + C.A_BOLD)
+
+                        if(view[rayIndex][2]):
+                            win.addstr(midY + z, xPos+1, '#', C.color_pair(2) + C.A_BOLD)
+                            win.addstr(midY - z, xPos+1, '#', C.color_pair(2) + C.A_BOLD)
+
                     elif(view[rayIndex][1] < 200):
-                        win.addstr(midY + z, xPos+1, '#', C.color_pair(0))
-                        win.addstr(midY - z, xPos+1, '#', C.color_pair(0))
+                        win.addstr(midY + z, xPos+1, '#', C.color_pair(1))
+                        win.addstr(midY - z, xPos+1, '#', C.color_pair(1))
+
+                        if(view[rayIndex][2]):
+                            win.addstr(midY + z, xPos+1, '#', C.color_pair(2))
+                            win.addstr(midY - z, xPos+1, '#', C.color_pair(2))
                     elif(view[rayIndex][1] < PVD):
-                        win.addstr(midY + z, xPos+1, '#', C.color_pair(0) + C.A_DIM)
-                        win.addstr(midY - z, xPos+1, '#', C.color_pair(0) + C.A_DIM)
+                        win.addstr(midY + z, xPos+1, '#', C.color_pair(1) + C.A_DIM)
+                        win.addstr(midY - z, xPos+1, '#', C.color_pair(1) + C.A_DIM)
+
+                        if(view[rayIndex][2]):
+                            win.addstr(midY + z, xPos+1, '#', C.color_pair(2) + C.A_DIM)
+                            win.addstr(midY - z, xPos+1, '#', C.color_pair(2) + C.A_DIM)
+
                 else:
                     win.addstr(int(midY) + z, xPos+1, ' ')
                     win.addstr(int(midY) - z, xPos+1, ' ')
@@ -200,7 +229,7 @@ def getMap(playerPos):
         _y = list(playMap[y])
 
         for x in range(len(_y)):
-            if(getCollision(x,y,playerPos['x'],playerPos['y'])):
+            if(getCollision(x,y,playerPos['x'],playerPos['y'])[0]):
                 _playerPX = x
                 _playerPY = y
                 row += 'O'
@@ -210,17 +239,6 @@ def getMap(playerPos):
                 row += str(_y[x])
 
         actMap += [row]
-
-
-    #if(315 < playerDir or playerDir < 45):
-    #    actMap[_playerPX+1][_playerPY] = '-'
-    #if(45 < playerDir and playerDir < 135):
-    #    actMap[_playerPX][_playerPY+1] = '|'
-    #if(135 < playerDir and playerDir < 225):
-    #    actMap[_playerPX-1][_playerPY] = '-'
-    #if(225 < playerDir and playerDir < 315):
-    #    actMap[_playerPX][_playerPY-1] = '|'
-
 
     return actMap
 
@@ -242,6 +260,8 @@ def getch():
 
 def inputHandling(key):
     global playerPos, playerDir
+
+    oldPos = playerPos.copy()
 
     if(key in inputKeys):
         if(inputKeys[key] == 'forward'):
@@ -278,25 +298,30 @@ def inputHandling(key):
             if(playerDir >= 360):
                 playerDir = playerDir - 360
 
+
+        for y in range(len(playMap)):
+            for x in range(len(playMap[y])):
+                if(playMap[y][x] in WALL):
+                    if(getCollision(x, y, playerPos['x'], playerPos['y'])[0]):
+                        playerPos = oldPos
+
 def mainProgram():
     win = C.initscr()
 
     # DRAWPHASE 0
     # INPUTPHASE 1
     PHASE = 0
-
     GAMERUNNING = True
     
     INPUT = False
     key = ''
 
-
     # 0:black, 1:red, 2:green, 3:yellow, 4:blue, 5:magenta, 6:cyan, and 7:white
     #color pairs
     C.start_color()
     C.use_default_colors()
-    C.init_pair(0, C.COLOR_WHITE, 1)
-    C.init_pair(1, C.COLOR_BLACK, -1)
+    C.init_pair(1, C.COLOR_WHITE, -1)
+    C.init_pair(2, C.COLOR_WHITE, C.COLOR_WHITE)
 
     # hide cursor
     C.noecho()
@@ -311,24 +336,13 @@ def mainProgram():
             ### DRAW LOOP
             win.clear()
 
-            #16:9
-            #winY = int(win.getmaxyx()[0])
-            #winX = int((winY/9) * 16)
-
+            #window resolution (not much)
             winX = int(win.getmaxyx()[1])
             winY = int(win.getmaxyx()[0])
-            #C.endwin()
-            #C.echo()
-            #C.curs_set(0)
-            #print(winY)
-            #quit()
-
-            global FOV
-            #FOV = winX-2
-
 
             #displayBorder draw
-            borderDraw(win,winX,winY)
+            #borderDraw(win,winX,winY)
+            win.box()
             
             #get view output from displaying(raycasting)
             view = displaying(playerPos,playerDir)
@@ -336,11 +350,7 @@ def mainProgram():
             #display all from rayCast (walls and stuff)
             viewPrinting(win,winX,winY,view)            
 
-            win.addstr(13,13,str(R.randint(0,9)))
-
-            #if(INPUT):
-            #    win.addstr(6,6,str(key))
-            #    INPUT = False
+            #win.addstr(13,13,str(R.randint(0,9)))
 
             #win.addstr(5,5,"DRAWPHASE")
             win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
@@ -348,9 +358,9 @@ def mainProgram():
             rootP = 15
 
             mmmMap = getMap(playerPos)
-            for i in range(len(playMap)):
-                for x in range(len(playMap[i])):
-                    win.addstr(rootP - i, rootP+x, mmmMap[i][x])
+            for y in range(len(playMap)):
+                for x in range(len(playMap[y])):
+                    win.addstr(rootP - y, rootP+x, mmmMap[y][x])
 
 
             PHASE = 1
@@ -371,7 +381,6 @@ def mainProgram():
     C.endwin()
     C.echo()
     C.curs_set(0)
-
 
     #if(inpThread.is_alive()):
     #    GAMERUNNING = False
