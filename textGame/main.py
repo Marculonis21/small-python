@@ -14,11 +14,13 @@ playMap = ["WWWWWWWWWWWWWW",
            "W            W",
            "W            W",
            "W  .    W    W",
-           "W            W",
+           "W       RG   W",
            "W            W",
            "WWWWWWWWWWWWWW"]
 
 WALL = "RGW"
+
+WC = {'R':1,'G':3,'W':5}
 
 #WALL_h = 50
 
@@ -31,7 +33,7 @@ inputKeys =  {'w':'forward',
 cNum = 1
 
 pieceSize = 50
-cornerSize = 10
+cornerSize = 5
 playerPos = {}
 playerDir = 0
 
@@ -43,6 +45,8 @@ PRS = 5
 PVD = 400
 #fieldOfView
 FOV = 80#VARIABLE - columns
+#numberofrays
+RAYNUM = -1
 #rayCastFidelity
 RCF = 50
 
@@ -182,27 +186,47 @@ def viewPrinting(win,winX,winY,view):
                 
                 if(view[rayIndex][0] in WALL):
                     if(view[rayIndex][1] < 100):
-                        win.addstr(midY + z, xPos+1, '#', C.color_pair(1) + C.A_BOLD)
-                        win.addstr(midY - z, xPos+1, '#', C.color_pair(1) + C.A_BOLD)
+                        #win.addstr(midY + z, xPos+1, '#', C.color_pair(1) + C.A_BOLD)
+                        #win.addstr(midY - z, xPos+1, '#', C.color_pair(1) + C.A_BOLD)
+
+                        win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]) + C.A_BOLD)
+                        win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]) + C.A_BOLD)
+                        #win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_BOLD)
 
                         if(view[rayIndex][2]):
-                            win.addstr(midY + z, xPos+1, '#', C.color_pair(2) + C.A_BOLD)
-                            win.addstr(midY - z, xPos+1, '#', C.color_pair(2) + C.A_BOLD)
+                            #win.addstr(midY + z, xPos+1, '#', C.color_pair(2) + C.A_BOLD)
+                            #win.addstr(midY - z, xPos+1, '#', C.color_pair(2) + C.A_BOLD)
+
+                            win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_BOLD)
+                            win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_BOLD)
 
                     elif(view[rayIndex][1] < 200):
-                        win.addstr(midY + z, xPos+1, '#', C.color_pair(1))
-                        win.addstr(midY - z, xPos+1, '#', C.color_pair(1))
+                        #win.addstr(midY + z, xPos+1, '#', C.color_pair(1))
+                        #win.addstr(midY - z, xPos+1, '#', C.color_pair(1))
+
+                        win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]))
+                        win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]))
 
                         if(view[rayIndex][2]):
-                            win.addstr(midY + z, xPos+1, '#', C.color_pair(2))
-                            win.addstr(midY - z, xPos+1, '#', C.color_pair(2))
+                            #win.addstr(midY + z, xPos+1, '#', C.color_pair(2))
+                            #win.addstr(midY - z, xPos+1, '#', C.color_pair(2))
+
+                            win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1))
+                            win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1))
+
                     elif(view[rayIndex][1] < PVD):
-                        win.addstr(midY + z, xPos+1, '#', C.color_pair(1) + C.A_DIM)
-                        win.addstr(midY - z, xPos+1, '#', C.color_pair(1) + C.A_DIM)
+                        #win.addstr(midY + z, xPos+1, '#', C.color_pair(1) + C.A_DIM)
+                        #win.addstr(midY - z, xPos+1, '#', C.color_pair(1) + C.A_DIM)
+
+                        win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]) + C.A_DIM)
+                        win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]) + C.A_DIM)
 
                         if(view[rayIndex][2]):
-                            win.addstr(midY + z, xPos+1, '#', C.color_pair(2) + C.A_DIM)
-                            win.addstr(midY - z, xPos+1, '#', C.color_pair(2) + C.A_DIM)
+                            #win.addstr(midY + z, xPos+1, '#', C.color_pair(2) + C.A_DIM)
+                            #win.addstr(midY - z, xPos+1, '#', C.color_pair(2) + C.A_DIM)
+
+                            win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_DIM)
+                            win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_DIM)
 
                 else:
                     win.addstr(int(midY) + z, xPos+1, ' ')
@@ -320,8 +344,14 @@ def mainProgram():
     #color pairs
     C.start_color()
     C.use_default_colors()
-    C.init_pair(1, C.COLOR_WHITE, -1)
-    C.init_pair(2, C.COLOR_WHITE, C.COLOR_WHITE)
+    C.init_pair(WC['W'], C.COLOR_WHITE, -1)
+    C.init_pair(WC['W']+1, C.COLOR_WHITE, C.COLOR_WHITE)
+
+    C.init_pair(WC['R'], C.COLOR_RED, -1)
+    C.init_pair(WC['R']+1, C.COLOR_RED, C.COLOR_RED)
+
+    C.init_pair(WC['G'], C.COLOR_GREEN, -1)
+    C.init_pair(WC['G']+1, C.COLOR_GREEN, C.COLOR_GREEN)
 
     # hide cursor
     C.noecho()
@@ -335,6 +365,8 @@ def mainProgram():
         if(PHASE == 0):
             ### DRAW LOOP
             win.clear()
+            
+            RAYNUM = winX
 
             #window resolution (not much)
             winX = int(win.getmaxyx()[1])
