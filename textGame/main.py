@@ -10,13 +10,16 @@ import termios
 import tty
 import os
 
-playMap = ["WWWWWWWWWWWWWW",
-           "W            W",
-           "W            W",
-           "W  .    W    W",
-           "W       RG   W",
-           "W            W",
-           "WWWWWWWWWWWWWW"]
+playMap = ["WWWWWWWWWW",
+           "W.       W",
+           "WRRRRRRR W",
+           "WW     G W",
+           "WW RG WG W",
+           "WW R   G W",
+           "WW WRGWG W",
+           "WW WWWWG W",
+           "WW       W",
+           "WWWWWWWWWW"]
 
 WALL = "RGW"
 
@@ -56,8 +59,8 @@ def displaying(_pos,_dir):
 
     #for every FOV point send out a ray
     #+1 - fine number of rays (symetry)
-    for loop in range(FOV+1):
-        testDir = _dir - int(FOV/2) + loop
+    for loop in range(RAYNUM):
+        testDir = _dir - int(FOV/2) + loop*(FOV/RAYNUM)
 
         #submodules of ray
         #works as number guessing game (lower/higher)
@@ -162,22 +165,22 @@ def borderDraw(win,winX,winY):
         win.addstr(y,winX-2,"#")
 
 def viewPrinting(win,winX,winY,view):
-    global cNum
-
     screenWidth = int(winX+1)
     midY = int(winY/2)
 
     #linePerRay
-    LPR = screenWidth / FOV
+    #LPR = screenWidth / FOV
 
     lastValue = 0
-    for rayIndex in range(FOV):
-        actualValue = int(LPR*rayIndex)
+    for rayIndex in range(RAYNUM):
+        #actualValue = int(LPR*rayIndex)
 
-        for i in range(actualValue-lastValue):
+        #for i in range(actualValue-lastValue):
+        for i in range(1):
             height_HALF = int(midY - view[rayIndex][1]/15)
 
-            xPos = lastValue + i
+            #xPos = lastValue + i
+            xPos = rayIndex
 
             for z in range(int(midY - view[rayIndex][1]/15)):
                 #strop??
@@ -244,7 +247,7 @@ def viewPrinting(win,winX,winY,view):
                 else:
                     win.addstr(winY-3-i, xPos+1, ' ', C.A_DIM)
 
-        lastValue = actualValue
+        #lastValue = actualValue
 
 def getMap(playerPos):
     actMap = []
@@ -330,6 +333,8 @@ def inputHandling(key):
                         playerPos = oldPos
 
 def mainProgram():
+    global RAYNUM
+
     win = C.initscr()
 
     # DRAWPHASE 0
@@ -366,11 +371,11 @@ def mainProgram():
             ### DRAW LOOP
             win.clear()
             
-            RAYNUM = winX
-
             #window resolution (not much)
             winX = int(win.getmaxyx()[1])
             winY = int(win.getmaxyx()[0])
+
+            RAYNUM = winX -2
 
             #displayBorder draw
             #borderDraw(win,winX,winY)
