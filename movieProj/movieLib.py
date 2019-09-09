@@ -12,11 +12,13 @@ from pyglet.gl import *
 
 window = pyglet.window.Window(800,800, "Movies", resizable = True)
 
-path = os.curdir
+#path = os.curdir
+path = "/media/marculonis/""My Passport""/""Filmy"""
 if(len(sys.argv) > 1):
     path = sys.argv[1]
 
 dataFiles = os.listdir("data/")
+fileNames = [x.rsplit('_',1)[0] for x in dataFiles]
 
 def findFiles(_dir, _ext, expand = True):
     found = ""
@@ -33,7 +35,7 @@ def findFiles(_dir, _ext, expand = True):
 
     return found
 
-imageList = []
+imageList = {}
 def loadImages():
     global imageList
 
@@ -46,22 +48,30 @@ def loadImages():
         actH = tex.height
         rat = actW/actH
 
-        imageList.append(tex)
+        imageList[item.split('_', 1)[1]] = tex
+
+    #ALPHABET SORT
+    imageList = dict(sorted(imageList.keys()))
+
+    #SCORE SORT
+    #imageList = dict(sorted(imageList.items(), key = lambda x: x[0].split('_')[1]))
 
 def webScrape(_name):
-    tqdm.tqdm.write(_name)
+    #tqdm.tqdm.write(_name)
     name = _name.split(';')
     name.pop()
     sName = name[0]
 
-    fff = list(sName)
-    for i in range(5): fff.pop()
-    sName = ''.join(fff)
+    #fff = list(sName)
+    #for i in range(5): fff.pop()
+    #sName = ''.join(fff)
 
-    if('pic_'+sName in dataFiles):
+    if('pic_'+sName in fileNames):
        return
 
-    xxx = list(sName)
+    s = sName[:len(sName)-4] + "(" + sName[len(sName)-4:] + ")"
+
+    xxx = list(s)
     for i in range(len(xxx)):
         if(xxx[i] == ' '):
             xxx[i] = '+'
@@ -69,7 +79,7 @@ def webScrape(_name):
     _name = ''.join(xxx)
 
     #1PAGE
-    page = req.urlopen("https://www.imdb.com/find?q={}".format(_name))
+    page = req.urlopen("https://www.imdb.com/find?q={}&s=tt&ttype=ft".format(_name))
     soup = BS(page, 'html.parser')
 
     #Find right section ("title"/"actor")
@@ -85,52 +95,7 @@ def webScrape(_name):
 
     #findResults
     fFind = fSection[sel].find(class_='findResult odd')
-    r1 = fFind.find_all("a")
-    result1 = r1[1]
-    print(result1)
-    quit()
-
-    result2 = None
-    try:
-        fFind = fSection[sel].find(class_='findResult even')
-        result2 = fFind.find("a")["href"]
-    except:
-        pass
-
-    final = ""
-    if(result2 == None):
-        final = result1
-    else:
-        x1 = list(result1)
-        x2 = list(result2)
-
-        f = list(sName)
-
-        reward1 = 0
-        for i in range(len(x1)):
-            try:
-                if(x1[i] == f[i]):
-                    reward1 += 1
-            except:
-                pass
-
-        reward2 = 0
-        for i in range(len(x2)):
-            try:
-                if(x2[i] == f[i]):
-                    reward2 += 1
-            except:
-                pass
-
-        print(x1,x2)
-        print(f)
-        print(reward1,reward2)
-
-    if(reward1 >= reward1):
-        final = result1
-    else:
-        final = result2
-
+    final = fFind.find("a")["href"]
     
     page = req.urlopen("https://www.imdb.com/{}".format(final))
     soup = BS(page, 'html.parser')
@@ -140,12 +105,10 @@ def webScrape(_name):
 
     ###SCORE
     _score = soup.find(class_='ratingValue')
-    score = _score.find("span")["itemprop"].text
-    print(_score)
-    print(score)
-    quit()
+    score = _score.find("span").contents[0]
 
-    req.urlretrieve(img, "data/pic_"+sName+"_"+str(score))
+    req.urlretrieve(img, "data/pic_"+sName+"_"+score)
+
 
 def drawImage(image, x, y, opacity=1):
     xx = x - image.width/2
@@ -200,7 +163,6 @@ def on_draw():
     drawImage(imageList[0], window.width/2,window.height/2)
 
 
-
 _files = findFiles(path, ["mkv","avi","mp4"], False)
 files = _files.split('\n')
 files.sort()
@@ -215,5 +177,9 @@ for i in tqdm.tqdm(range(len(nFiles))):
 #https://www.imdb.com/find?q=a+a
 
 loadImages()
+for i in imageList:
+    print(i)
+
+quit()
 
 pyglet.app.run()
