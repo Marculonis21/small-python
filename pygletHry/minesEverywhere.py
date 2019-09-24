@@ -5,6 +5,7 @@ import random as R
 
 window = pyglet.window.Window(500,500, "MINES", resizable = False)
 
+window.set_location(500,250)
 pieceSize = 50
 numX = int(window.width/pieceSize) + 1
 numY = int(window.height/pieceSize) + 1

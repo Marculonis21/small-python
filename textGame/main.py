@@ -3,6 +3,7 @@
 import curses as C 
 import math
 import pyglet
+from pyglet.gl import *
 import random as R
 import time
 import sys
@@ -148,6 +149,15 @@ def getCollision(x,y, itemX, itemY):
 
     return collision, corner
 
+def getPlayerStartPos():
+    for y in range(len(playMap)):
+        _y = list(playMap[y])
+
+        for x in range(len(_y)):
+            if(_y[x] == '.'):
+                playerPos['y'] = (pieceSize*y)
+                playerPos['x'] = (pieceSize*x)
+
 def borderDraw(win,winX,winY):
     #win.addstr(0,0,"#")
     #win.addstr(winY-2,winX-2,"#")
@@ -265,7 +275,7 @@ def getMap(playerPos):
     return actMap
 
 def getch():
-    # https://www.jonwitts.co.uk/archives/896
+    # https://wfww.jonwitts.co.uk/archives/896
     # adapted from https://github.com/recantha/EduKit3-RC-Keyboard/blob/master/rc_keyboard.py
     #
     # Works well better than Curses getch (lag on input - pressing even if no
@@ -328,6 +338,8 @@ def inputHandling(key):
                         playerPos = oldPos
 
 def mainProgram():
+    getPlayerStartPos()
+
     win = C.initscr()
 
     # DRAWPHASE 0
@@ -419,16 +431,42 @@ def mainProgram():
     C.echo()
     C.endwin()
 
-for y in range(len(playMap)):
-    _y = list(playMap[y])
-
-    for x in range(len(_y)):
-        if(_y[x] == '.'):
-            playerPos['y'] = (pieceSize*y)
-            playerPos['x'] = (pieceSize*x)
-
 
 #displaying(playerPos,playerDir)
 #quit()
+
+pWindow = pyglet.window.Window(1280,720, "SUMMER 2019", resizable = False)
+screen = pyglet.window.get_platform().get_default_display().get_default_screen()
+
+def tick(t):
+
+    pass
+
+c = 0.0
+gradUp=True
+@pWindow.event
+def on_draw():
+    global c
+    global gradUp
+
+    #pWindow.set_location(0,0)
+    img = pyglet.image.load("data/summer2019_en.jpg")
+    tex = img.get_texture()
+
+    if(gradUp and c <= 1.0):
+        c+=0.01
+        if(c >= 1):
+            gradUp = False
+    elif(gradUp == False and c > 0):
+        c-=0.05
+    elif(gradUp == False and c <= 0):
+        pyglet.app.exit()
+
+    glColor3f(c,c,c)
+    tex.blit(0,0)
+
+pyglet.clock.schedule_interval(tick, 1/60)
+pyglet.app.run()
+pWindow.close()
 
 mainProgram()
