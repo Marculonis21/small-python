@@ -119,7 +119,7 @@ class LevelList:
                 "G            11111R",
                 "G           WWWWWWW",
                 "G     WWWWWWW      ",
-                "W00   W            ",
+                "W000  W            ",
                 "W  WWWW            ",
                 "W  WWWW            ",
                 "W  WWWW            ",

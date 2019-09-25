@@ -11,13 +11,20 @@ import termios
 import tty
 import os
 
-playMap = ["WWWWWWWWWWWWWW",
-           "W            W",
-           "W            W",
-           "W  .    W    W",
-           "W       RG   W",
-           "W            W",
-           "WWWWWWWWWWWWWW"]
+sys.path.append('./data')
+from mapData import *
+
+#import list of levels from data/mapData.py
+lvls = LevelList()
+
+
+test_playMap = ["WWWWWWWWWWWWWW",
+                "W            W",
+                "W            W",
+                "W  .    W    W",
+                "W       RG   W",
+                "W            W",
+                "WWWWWWWWWWWWWW"]
 
 WALL = "RGW"
 
@@ -254,7 +261,7 @@ def viewPrinting(win,winX,winY,view):
 
         lastValue = actualValue
 
-def getMap(playerPos):
+def getMinMap(playerPos):
     actMap = []
     for y in range(len(playMap)):
         row = []
@@ -290,6 +297,20 @@ def getch():
         termios.tcsetattr(fd,termios.TCSADRAIN,old_settings)
     return ch
 
+def getMap(lvlIndex, mapIndex):
+    _map = lvls.levels[lvlIndex-1][mapIndex-1]
+
+    _map.remove(_map[0])
+    _map.remove(_map[len(_map)-2])
+
+    _trans = _map.pop()
+    print(_trans)
+    _trans.remove('(') _trans.remove(')')
+    print(_trans)
+    
+    return _map, _trans
+    
+    
 def inputHandling(key):
     global playerPos, playerDir
 
@@ -338,6 +359,11 @@ def inputHandling(key):
                         playerPos = oldPos
 
 def mainProgram():
+    playMap, transMap = getMap(1,1)
+
+    print(playMap,transMap)
+    quit()
+    
     getPlayerStartPos()
 
     win = C.initscr()
@@ -396,11 +422,11 @@ def mainProgram():
             win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
             win.addstr(4,3,"DIR: {}".format(playerDir))
             rootP = 15
-
-            mmmMap = getMap(playerPos)
-            for y in range(len(playMap)):
-                for x in range(len(playMap[y])):
-                    win.addstr(rootP - y, rootP+x, mmmMap[y][x])
+    
+            #mmmMap = getMinMap(playerPos)
+            #for y in range(len(playMap)):
+            #    for x in range(len(playMap[y])):
+            #        win.addstr(rootP - y, rootP+x, mmmMap[y][x])
 
 
             PHASE = 1
@@ -436,7 +462,7 @@ def mainProgram():
 #quit()
 
 pWindow = pyglet.window.Window(1280,720, "SUMMER 2019", resizable = False)
-screen = pyglet.window.get_platform().get_default_display().get_default_screen()
+#screen = pyglet.window.get_platform().get_default_display().get_default_screen()
 
 def tick(t):
 
@@ -455,10 +481,12 @@ def on_draw():
 
     if(gradUp and c <= 1.0):
         c+=0.01
+        c+=1
         if(c >= 1):
             gradUp = False
     elif(gradUp == False and c > 0):
         c-=0.05
+        c-=1
     elif(gradUp == False and c <= 0):
         pyglet.app.exit()
 
