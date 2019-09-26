@@ -12,11 +12,11 @@ import tty
 import os
 
 sys.path.append('./data')
-from mapData import *
+import mapData
 
 #import list of levels from data/mapData.py
-lvls = LevelList()
-
+mapData.makeLvls()
+lvls = mapData.levels
 
 test_playMap = ["WWWWWWWWWWWWWW",
                 "W            W",
@@ -26,11 +26,9 @@ test_playMap = ["WWWWWWWWWWWWWW",
                 "W            W",
                 "WWWWWWWWWWWWWW"]
 
-WALL = "RGW"
-
-WC = {'R':1,'G':3,'W':5}
-
-#WALL_h = 50
+playMap = []
+mapPorts = []
+lvlStage = 0
 
 inputKeys =  {'w':'forward', 
               's':'backward',
@@ -38,12 +36,14 @@ inputKeys =  {'w':'forward',
               'd':'right',
               'P':'exit'}
 
-cNum = 1
-
 pieceSize = 50
-cornerSize = 5
+cornerSize = 8
 playerPos = {}
-playerDir = 0
+playerDir = 270
+
+#WALLCOLORS
+WC = {'R':1,'G':3,'W':5,'B':7}
+WALL = "".join(i for i in WC.keys())
 
 #moveSpeed
 PMS = 8
@@ -55,6 +55,8 @@ PVD = 400
 FOV = 80#VARIABLE - columns
 #rayCastFidelity
 RCF = 50
+#portrotationbias
+PRB = 120
 
 
 def displaying(_pos,_dir):
@@ -63,7 +65,7 @@ def displaying(_pos,_dir):
     #for every FOV point send out a ray
     #+1 - fine number of rays (symetry)
     for loop in range(FOV+1):
-        testDir = _dir - int(FOV/2) + loop
+        testDir = _dir + int(FOV/2) - loop
 
         #submodules of ray
         #works as number guessing game (lower/higher)
@@ -78,17 +80,10 @@ def displaying(_pos,_dir):
             forwardX = math.sin(math.radians(testDir))
             forwardY = math.cos(math.radians(testDir))
 
-            #rayX = int(_PVD*forwardX)
-            #rayY = int(_PVD*forwardY)
-
-            #print(testDir-_dir)
             N = int(_PVD/math.cos(math.radians(testDir-_dir)))
 
             rayX = int(N*math.sin(math.radians(testDir)))
             rayY = int(N*math.cos(math.radians(testDir)))
-
-            #print(rayX,rayY)
-            #continue
 
             collision, corner = rayCast(rayX,rayY,_pos)
 
@@ -298,19 +293,29 @@ def getch():
     return ch
 
 def getMap(lvlIndex, mapIndex):
-    _map = lvls.levels[lvlIndex-1][mapIndex-1]
+    global playMap, mapPorts
+
+    _map = lvls[lvlIndex][mapIndex]
 
     _map.remove(_map[0])
     _map.remove(_map[len(_map)-2])
 
     _trans = _map.pop()
-    print(_trans)
-    _trans.remove('(') _trans.remove(')')
-    print(_trans)
-    
-    return _map, _trans
-    
-    
+    _trans = _trans.translate({ord(i): None for i in '()'})
+    opts = _trans.split('|')
+    opts.pop()
+
+    _ports = []
+    for item in opts:
+        s1 = item.split('_')
+        s2 = s1[2].translate({ord(i): None for i in '[]'}).split(',')
+        p = [int(s1[0]), int(s1[1]), [int(s2[0]),int(s2[1])]]
+
+        _ports.append(p)
+
+    playMap = _map
+    mapPorts = _ports
+
 def inputHandling(key):
     global playerPos, playerDir
 
@@ -335,7 +340,7 @@ def inputHandling(key):
 
         if(inputKeys[key] == 'left'):
 
-            playerDir -= PRS
+            playerDir += PRS
             if(playerDir < 0):
                 playerDir = 360 + playerDir 
 
@@ -344,7 +349,7 @@ def inputHandling(key):
 
         if(inputKeys[key] == 'right'):
             
-            playerDir += PRS
+            playerDir -= PRS
             if(playerDir < 0):
                 playerDir = 360 + playerDir 
 
@@ -352,18 +357,63 @@ def inputHandling(key):
                 playerDir = playerDir - 360
 
 
+        _tp_lvlStage = -1
+        _tp_lvl = -1
+        _tp_distx = -1
+        _tp_disty = -1
         for y in range(len(playMap)):
+
+            #If there is a need for port (end of for loop)
+            if(_tp_lvlStage != -1):
+                getMap(_tp_lvlStage, _tp_lvl)
+
+                playerPos['x'] += _tp_distx*pieceSize
+                playerPos['y'] += _tp_disty*pieceSize
+                break
+
             for x in range(len(playMap[y])):
+
+                #Wall collision
                 if(playMap[y][x] in WALL):
                     if(getCollision(x, y, playerPos['x'], playerPos['y'])[0]):
                         playerPos = oldPos
 
-def mainProgram():
-    playMap, transMap = getMap(1,1)
+                #Map teleports
+                if(playMap[y][x] in "0123456789"):
+                    if(getCollision(x, y, playerPos['x'], playerPos['y'])[0]):
+                        for item in mapPorts:
+                            if(item[0] == int(playMap[y][x])):
+                                lowBound = item[1] - PRB/2
+                                upBound = item[1] + PRB/2
 
-    print(playMap,transMap)
-    quit()
-    
+                                if(lowBound < 0):
+                                    lowBound = 360 + lowBound 
+
+                                if(upBound >= 360):
+                                    upBound = upBound - 360
+
+                                if(item[1] == 0):
+                                    if(lowBound <= playerDir <= 360
+                                           or 0 <= playerDir <= upBound):
+                                        _tp_lvlStage = lvlStage
+                                        _tp_lvl = item[0]
+                                        _tp_distx = item[2][0]
+                                        _tp_disty = item[2][1]
+                                        break
+
+                                else:
+                                    if(lowBound <= playerDir <= upBound):
+                                        _tp_lvlStage = lvlStage
+                                        _tp_lvl = item[0]
+                                        _tp_distx = item[2][0]
+                                        _tp_disty = item[2][1]
+                                        break
+
+
+
+def mainProgram():
+    getMap(lvlStage,3)
+
     getPlayerStartPos()
 
     win = C.initscr()
@@ -388,6 +438,9 @@ def mainProgram():
 
     C.init_pair(WC['G'], C.COLOR_GREEN, -1)
     C.init_pair(WC['G']+1, C.COLOR_GREEN, C.COLOR_GREEN)
+
+    C.init_pair(WC['B'], C.COLOR_BLUE, -1)
+    C.init_pair(WC['B']+1, C.COLOR_BLUE, C.COLOR_BLUE)
 
     # hide cursor
     C.noecho()
@@ -423,10 +476,10 @@ def mainProgram():
             win.addstr(4,3,"DIR: {}".format(playerDir))
             rootP = 15
     
-            #mmmMap = getMinMap(playerPos)
-            #for y in range(len(playMap)):
-            #    for x in range(len(playMap[y])):
-            #        win.addstr(rootP - y, rootP+x, mmmMap[y][x])
+            mmmMap = getMinMap(playerPos)
+            for y in range(len(playMap)):
+                for x in range(len(playMap[y])):
+                    win.addstr(rootP - y, rootP+x, mmmMap[len(playMap)-1-y][x])
 
 
             PHASE = 1
@@ -486,12 +539,13 @@ def on_draw():
             gradUp = False
     elif(gradUp == False and c > 0):
         c-=0.05
-        c-=1
+        #c-=1
     elif(gradUp == False and c <= 0):
         pyglet.app.exit()
 
     glColor3f(c,c,c)
     tex.blit(0,0)
+
 
 pyglet.clock.schedule_interval(tick, 1/60)
 pyglet.app.run()
