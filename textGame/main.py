@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
-import curses as C 
+
 import math
-import pyglet
-from pyglet.gl import *
 import random as R
 import time
 import sys
 import termios
 import tty
 import os
+import curses as C 
+import pyglet
+from pyglet.gl import *
 
 sys.path.append('./data')
 import mapData
@@ -42,13 +43,13 @@ playerPos = {}
 playerDir = 270
 
 #WALLCOLORS
-WC = {'R':1,'G':3,'W':5,'B':7}
+WC = {'R':1,'G':3,'W':5,'B':7,'M':9,'Y':11}
 WALL = "".join(i for i in WC.keys())
 
 #moveSpeed
-PMS = 8
+PMS = 12
 #rotationSpeed
-PRS = 5
+PRS = 6
 #viewDistance
 PVD = 400
 #fieldOfView
@@ -175,6 +176,7 @@ def viewPrinting(win,winX,winY,view):
     global cNum
 
     screenWidth = int(winX+1)
+    midX = int(screenWidth/2)
     midY = int(winY/2)
 
     #linePerRay
@@ -196,45 +198,26 @@ def viewPrinting(win,winX,winY,view):
                 
                 if(view[rayIndex][0] in WALL):
                     if(view[rayIndex][1] < 100):
-                        #win.addstr(midY + z, xPos+1, '#', C.color_pair(1) + C.A_BOLD)
-                        #win.addstr(midY - z, xPos+1, '#', C.color_pair(1) + C.A_BOLD)
-
                         win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]) + C.A_BOLD)
                         win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]) + C.A_BOLD)
-                        #win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_BOLD)
 
                         if(view[rayIndex][2]):
-                            #win.addstr(midY + z, xPos+1, '#', C.color_pair(2) + C.A_BOLD)
-                            #win.addstr(midY - z, xPos+1, '#', C.color_pair(2) + C.A_BOLD)
-
                             win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_BOLD)
                             win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_BOLD)
 
                     elif(view[rayIndex][1] < 200):
-                        #win.addstr(midY + z, xPos+1, '#', C.color_pair(1))
-                        #win.addstr(midY - z, xPos+1, '#', C.color_pair(1))
-
                         win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]))
                         win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]))
 
                         if(view[rayIndex][2]):
-                            #win.addstr(midY + z, xPos+1, '#', C.color_pair(2))
-                            #win.addstr(midY - z, xPos+1, '#', C.color_pair(2))
-
                             win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1))
                             win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1))
 
                     elif(view[rayIndex][1] < PVD):
-                        #win.addstr(midY + z, xPos+1, '#', C.color_pair(1) + C.A_DIM)
-                        #win.addstr(midY - z, xPos+1, '#', C.color_pair(1) + C.A_DIM)
-
                         win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]) + C.A_DIM)
                         win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]) + C.A_DIM)
 
                         if(view[rayIndex][2]):
-                            #win.addstr(midY + z, xPos+1, '#', C.color_pair(2) + C.A_DIM)
-                            #win.addstr(midY - z, xPos+1, '#', C.color_pair(2) + C.A_DIM)
-
                             win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_DIM)
                             win.addstr(midY - z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]+1) + C.A_DIM)
 
@@ -244,15 +227,32 @@ def viewPrinting(win,winX,winY,view):
 
             #FLOOR distance from player
             DFP = midY - height_HALF
-            for i in range(DFP):
-                if(i < 3):
-                    win.addstr(winY-3-i, xPos+1, 'O', C.A_DIM)
-                elif(i < 9):
+            
+            for i in range(DFP - 2):
+                #Center point distance (for floor shading)
+                CPD = math.sqrt(abs(midX-3 - xPos+1)**2 + abs(winY - winY-i-250)**2) 
+
+                #if(i < 3):
+                #    win.addstr(winY-3-i, xPos+1, 'O', C.A_BOLD)
+                #elif(i < 9):
+                #    win.addstr(winY-3-i, xPos+1, '.')
+                #elif(i < 12): 
+                #    win.addstr(winY-3-i, xPos+1, '.', C.A_DIM)
+                #elif(i < 20):
+                #    win.addstr(winY-3-i, xPos+1, '-', C.A_DIM)
+                #else:
+                #    win.addstr(winY-3-i, xPos+1, ' ', C.A_DIM)
+
+                if(CPD < 255):
+                    win.addstr(winY-3-i, xPos+1, 'O')
+                elif(CPD < 265):
+                    win.addstr(winY-3-i, xPos+1, '-')
+                elif(CPD < 270):
                     win.addstr(winY-3-i, xPos+1, '-', C.A_DIM)
-                elif(i < 20):
-                    win.addstr(winY-3-i, xPos+1, '.', C.A_DIM)
-                else:
-                    win.addstr(winY-3-i, xPos+1, ' ', C.A_DIM)
+                #else:
+                #    win.addstr(winY-3-i, xPos+1, '.', C.A_DIM)
+
+                win.addstr(winY-3,int(midX),' ', C.A_BOLD)
 
         lastValue = actualValue
 
@@ -275,7 +275,7 @@ def getMinMap(playerPos):
         actMap += [row]
 
     return actMap
-
+    
 def getch():
     # https://wfww.jonwitts.co.uk/archives/896
     # adapted from https://github.com/recantha/EduKit3-RC-Keyboard/blob/master/rc_keyboard.py
@@ -290,12 +290,13 @@ def getch():
         ch = sys.stdin.read(1)
     finally:
         termios.tcsetattr(fd,termios.TCSADRAIN,old_settings)
+
     return ch
 
 def getMap(lvlIndex, mapIndex):
     global playMap, mapPorts
 
-    _map = lvls[lvlIndex][mapIndex]
+    _map = lvls[lvlIndex][mapIndex].copy()
 
     _map.remove(_map[0])
     _map.remove(_map[len(_map)-2])
@@ -320,7 +321,7 @@ def inputHandling(key):
     global playerPos, playerDir
 
     oldPos = playerPos.copy()
-
+    
     if(key in inputKeys):
         if(inputKeys[key] == 'forward'):
 
@@ -410,13 +411,14 @@ def inputHandling(key):
                                         break
 
 
-
 def mainProgram():
-    getMap(lvlStage,3)
+    getMap(lvlStage,0)
 
     getPlayerStartPos()
 
     win = C.initscr()
+
+    C.savetty()
 
     # DRAWPHASE 0
     # INPUTPHASE 1
@@ -441,6 +443,12 @@ def mainProgram():
 
     C.init_pair(WC['B'], C.COLOR_BLUE, -1)
     C.init_pair(WC['B']+1, C.COLOR_BLUE, C.COLOR_BLUE)
+
+    C.init_pair(WC['M'], C.COLOR_MAGENTA, -1)
+    C.init_pair(WC['M']+1, C.COLOR_MAGENTA, C.COLOR_MAGENTA)
+
+    C.init_pair(WC['Y'], C.COLOR_YELLOW, -1)
+    C.init_pair(WC['Y']+1, C.COLOR_YELLOW, C.COLOR_YELLOW)
 
     # hide cursor
     C.noecho()
@@ -489,7 +497,9 @@ def mainProgram():
         elif(PHASE == 1):
             ### INPUT LOOP
             win.addstr(5,5,"INPUTPHASE")
+
             key = getch()
+
             inputHandling(key)
             if(key == 'P'):
                 GAMERUNNING = False
@@ -500,15 +510,6 @@ def mainProgram():
     C.endwin()
     C.echo()
     C.curs_set(0)
-
-    #if(inpThread.is_alive()):
-    #    GAMERUNNING = False
-    #    run_q.put(GAMERUNNING)
-
-    #    inpThread.join()
-
-    C.echo()
-    C.endwin()
 
 
 #displaying(playerPos,playerDir)

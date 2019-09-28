@@ -9,10 +9,10 @@ def l1():
             "WWWWWWW            ",
             "W     W            ",
             "G     WWWWWWW      ",
-            "G           WWWWWWW",
-            "G  .         11111R",
-            "G           WWWWWWW",
-            "G     WWWWWWW      ",
+            "B           WWWWWWW",
+            "R  .         11111R",
+            "M           WWWWWWW",
+            "Y     WWWWWWW      ",
             "W     W            ",
             "WWWWWWW            ",
             "                  .",
@@ -29,7 +29,7 @@ def l1():
 
     l1_2 = [".            ",
             "GGWWWWWWWWWWW",
-            "G.          W",
+            "G           W",
             "GGWWWW      W",
             "     WWWWW33W",
             "        WW33W",
@@ -43,7 +43,7 @@ def l1():
     l1_3 = [".       ",
             "WWWWWWWW",
             "W      W",
-            "G     .W",
+            "G      W",
             "G  WW22W",
             "G  WW22W",
             "G  44  W",
@@ -67,29 +67,29 @@ def l1():
     l1.append(l1_4)
 
     l1_5 = [".       ",
-            "BBBBBBBW",
+            "GBBBBBBW",
             "G  44  W",
             "G  44  W",
-            "G  WW  W",
-            "G  WW  W",
-            "G  66  W",
-            "G  66  W",
+            "G  WW66W",
+            "G  WW66W",
+            "G      W",
+            "G      W",
             "GGGGGGGG",
             "       .",
-            "(4_270_[0,0]|6_270_[0,0]|)"]
+            "(4_270_[0,0]|6_0_[0,0]|)"]
     l1.append(l1_5)
 
     l1_6 = [".       ",
             "RRRRRRRW",
             "B  77  W",
             "B  77  W",
-            "B  WW  W",
-            "B  WW  W",
-            "B  55  W",
-            "B  55  W",
+            "B  WW55W",
+            "B  WW55W",
+            "B      W",
+            "B      W",
             "BGGGGGGG",
             "       .",
-            "(5_90_[0,0]|7_90_[0,0]|)"]
+            "(5_180_[0,0]|7_90_[0,0]|)"]
     l1.append(l1_6)
 
     l1_7 = [".       ",
@@ -107,17 +107,17 @@ def l1():
             "    W88W",
             "    GGGG",
             "       .",
-            "(6_270_[0,0]|8_180_[-4,2]|)"]
+            "(6_270_[0,0]|8_0_[-4,2]|)"]
     l1.append(l1_7)
 
     l1_8 = [".                  ",
             "WWWWWWW            ",
             "W     W            ",
             "G     WWWWWWW      ",
-            "G           WWWWWWW",
-            "G            11111R",
-            "G           WWWWWWW",
-            "G     WWWWWWW      ",
+            "B           WWWWWWW",
+            "R            11111R",
+            "M           WWWWWWW",
+            "Y     WWWWWWW      ",
             "W000  W            ",
             "W  WWWW            ",
             "W  WWWW            ",
@@ -126,7 +126,7 @@ def l1():
             "W  WWWW            ",
             "GGGGWWW            ",
             "                  .",
-            "(1_90_[-12,0]|0_0_[0,0]|)"]
+            "(1_90_[-12,0]|0_180_[0,0]|)"]
     l1.append(l1_8)
 
     levels.append(l1)
