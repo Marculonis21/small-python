@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 
+#Project for competition by ITnetwork.cz. 
+#Done by Marek Šrůma in about 2 months working on and off the project.
+#Feel free to dig in as you wish, hopefully my code is readable for others.
+#I'll be surely happy to share a word with people,
+#who are willing to talk about the game and the code (ideas, etc.).
+#Contact address: marek.sruma@gmail.com
+#
+#Needless to say I'm not a professional programmer, but this project was a lot of fun for me!
+#
+#PS.: Additional content I was thinking about: more maps, in game map creator, enhanced 3D feel
+
 import math
 import random as R
 import time
@@ -9,20 +20,25 @@ import tty
 import os
 import curses as C 
 
-try:
-    import pyglet
-    from pyglet.gl import *
-except ModuleNotFoundError:
-    os.system("pip3 install pyglet")
-try:
-    import webbrowser
-except ModuleNotFoundError:
-    os.system("pip3 install webbrowser")
+while True:
+    try:
+        import pyglet
+        from pyglet.gl import *
+        break
+    except ModuleNotFoundError:
+        os.system("pip3 install pyglet")
 
-            
+while True:
+    try:
+        import webbrowser
+        break
+    except ModuleNotFoundError:
+        os.system("pip3 install webbrowser")
+
 sys.path.append('./data')
 import mapData
 import menuData
+
 
 #import list of levels from data/mapData.py
 mapData.makeLvls()
@@ -36,25 +52,31 @@ test_playMap = ["WWWWWWWWWWWWWW",
                 "W            W",
                 "WWWWWWWWWWWWWW"]
 
+#mapdata variables
 playMap = []
 mapPorts = []
 lvlStage = 0
 
+#input
 inputKeys =  {'w':'forward', 
               's':'backward',
               'a':'left',
               'd':'right',
               'P':'exit'}
 
+#world settings 
 pieceSize = 50
 cornerSize = 8
+
+#player variables
 playerPos = {}
 playerDir = 270
 
-#WALLCOLORS
+#WALLS+COLORS
 WC = {'R':1,'G':3,'W':5,'B':7,'M':9,'Y':11}
 WALL = "".join(i for i in WC.keys())
 
+#MORE OPTIONS
 #moveSpeed
 PMS = 12
 #rotationSpeed
@@ -62,7 +84,7 @@ PRS = 6
 #viewDistance
 PVD = 400
 #fieldOfView
-FOV = 80#VARIABLE - columns
+FOV = 80
 #rayCastFidelity
 RCF = 50
 #portrotationbias
@@ -108,8 +130,6 @@ def displaying(_pos,_dir):
     return rayOutput
 
 def rayCast(_rayX,_rayY,_pos):
-    #Test ray XY coordinates
-    
     rayX = _rayX
     rayY = _rayY
 
@@ -127,7 +147,6 @@ def rayCast(_rayX,_rayY,_pos):
                 #(also add playerPos to ray pos to get where the ray really ends! :D)
                 col, corner = getCollision(xPos, yPos, _pos['x']+rayX, _pos['y']+rayY)
                 if(col):
-                    #WALL
                     if(_y[x] in WALL):
                         return _y[x], corner
 
@@ -151,11 +170,7 @@ def getCollision(x,y, itemX, itemY):
             if(lowerBoundX <= itemX <= lowerBoundX+cornerSize):
                 if(lowerBoundY <= itemY <= lowerBoundY+cornerSize):
                     corner = True
-                #if(upperBoundY >= itemY >= upperBoundY-cornerSize):
-                #    corner = True
             if(upperBoundX >= itemX >= upperBoundX-cornerSize):
-                #if(lowerBoundY <= itemY <= lowerBoundY+cornerSize):
-                #    corner = True
                 if(upperBoundY >= itemY >= upperBoundY-cornerSize):
                     corner = True
 
@@ -174,9 +189,6 @@ def getPlayerStartPos():
                 playerPos['x'] = (pieceSize*x)
 
 def borderDraw(win,winX,winY):
-    #win.addstr(0,0,"#")
-    #win.addstr(winY-2,winX-2,"#")
-    
     for x in range(0,winX-2):
         win.addstr(0,x,"#")
         win.addstr(winY-2,x,"#")
@@ -195,6 +207,7 @@ def viewPrinting(win,winX,winY,view):
     LPR = screenWidth / FOV
 
     lastValue = 0
+    #going through rays and spreading them through all columns on the screen
     for rayIndex in range(FOV):
         actualValue = int(LPR*rayIndex)
 
@@ -204,10 +217,10 @@ def viewPrinting(win,winX,winY,view):
             xPos = lastValue + i
 
             for z in range(int(midY - view[rayIndex][1]/15)):
-                #strop??
                 if(z >= midY):
                     break
                 
+                #WALL PRINTING
                 if(view[rayIndex][0] in WALL):
                     if(view[rayIndex][1] < 100):
                         win.addstr(midY + z, xPos+1, '#', C.color_pair(WC[view[rayIndex][0]]) + C.A_BOLD)
@@ -240,20 +253,10 @@ def viewPrinting(win,winX,winY,view):
             #FLOOR distance from player
             DFP = midY - height_HALF
             
+            #FLOORSHADOW
             for i in range(DFP - 2):
                 #Center point distance (for floor shading)
                 CPD = math.sqrt(abs(midX-3 - xPos+1)**2 + abs(winY - winY-i-250)**2) 
-
-                #if(i < 3):
-                #    win.addstr(winY-3-i, xPos+1, 'O', C.A_BOLD)
-                #elif(i < 9):
-                #    win.addstr(winY-3-i, xPos+1, '.')
-                #elif(i < 12): 
-                #    win.addstr(winY-3-i, xPos+1, '.', C.A_DIM)
-                #elif(i < 20):
-                #    win.addstr(winY-3-i, xPos+1, '-', C.A_DIM)
-                #else:
-                #    win.addstr(winY-3-i, xPos+1, ' ', C.A_DIM)
 
                 if(CPD < 255):
                     win.addstr(winY-3-i, xPos+1, 'O')
@@ -261,10 +264,6 @@ def viewPrinting(win,winX,winY,view):
                     win.addstr(winY-3-i, xPos+1, '-')
                 elif(CPD < 270):
                     win.addstr(winY-3-i, xPos+1, '-', C.A_DIM)
-                #else:
-                #    win.addstr(winY-3-i, xPos+1, '.', C.A_DIM)
-
-                win.addstr(winY-3,int(midX),' ', C.A_BOLD)
 
         lastValue = actualValue
 
@@ -376,7 +375,7 @@ def inputHandling(key):
         _tp_disty = -1
         for y in range(len(playMap)):
 
-            #If there is a need for port (end of for loop)
+            #If there is a need for port (end of the for loop)
             if(_tp_lvlStage != -1):
                 getMap(_tp_lvlStage, _tp_lvl)
 
@@ -386,7 +385,7 @@ def inputHandling(key):
 
             for x in range(len(playMap[y])):
 
-                #Wall collision
+                #Player wall collision
                 if(playMap[y][x] in WALL):
                     if(getCollision(x, y, playerPos['x'], playerPos['y'])[0]):
                         playerPos = oldPos
@@ -423,7 +422,6 @@ def inputHandling(key):
                                         break
 
 def menuDrawCenter(win, x,y,text, BOLD = False, SELECTED = False):
-
     label = text
     centXText = int(len(label[0])/2)
     loop = 0
@@ -463,7 +461,7 @@ def menuPhase(win):
             win.clear()
             
             try:
-                if(PRESSED == -1):
+                if(PRESSED == -1): #NOTHING SELECTED
                     menuDrawCenter(win, midX, 2, menuData.topName, True)
 
                     for i in range(4):
@@ -472,7 +470,6 @@ def menuPhase(win):
                             win.addstr(win.getmaxyx()[0]-3, win.getmaxyx()[1] - 54,
                                     "GAME DEVELOPED FOR 2019 ITNETWORK.CZ SUMMER CONTEST")
                             cursesBox(win, win.getmaxyx()[1]-56,win.getmaxyx()[0] - 4, 54, 2)
-
 
                             win.addstr(win.getmaxyx()[0]-5, 3,
                                     " UP - W || DOWN - S")
@@ -532,7 +529,7 @@ def menuPhase(win):
         elif(PHASE == 1):
             key = getch()
 
-            if(PRESSED == -1):
+            if(PRESSED == -1): #IN MENU
                 if(key == "w" or key == 'W'):
                     menuSelect -= 1
                     if(menuSelect < 0):
@@ -549,7 +546,7 @@ def menuPhase(win):
                     else:
                         PRESSED = menuSelect
 
-            elif(PRESSED == 1):
+            elif(PRESSED == 1): #IN HELP
                 if(key == 'd' or key == 'D'):
                     PRESSED = -1
 
@@ -578,20 +575,20 @@ def gamePhase(win):
             ### DRAW LOOP
             win.clear()
             
-            #window resolution (not much)
             winX = int(win.getmaxyx()[1])
             winY = int(win.getmaxyx()[0])
 
-            #displayBorder draw
-            #borderDraw(win,winX,winY)
-            win.box()
-            
             #get view output from displaying(raycasting)
             view = displaying(playerPos,playerDir)
 
             #display all from rayCast (walls and stuff)
             viewPrinting(win,winX,winY,view)            
 
+            #displayBorder 
+            #borderDraw(win,winX,winY)
+            win.box()
+
+            #TUTORIAL at the start
             if(INFOTIME):
                 INFOTIME = infoPhase(win, INFOTIME, INFOPRESS)
                 
@@ -599,16 +596,20 @@ def gamePhase(win):
                     win.refresh()
                     continue
 
-            #DEBUGING POS + DIR
+            #FOR DEBUGING
+            #-----------------
+            #POS + DIR
             #win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
             #win.addstr(4,3,"DIR: {}".format(playerDir))
 
-            #DEBUGING MINIMAP
+            #MINIMAP
             #rootP = 15
             #mmmMap = getMinMap(playerPos)
             #for y in range(len(playMap)):
             #    for x in range(len(playMap[y])):
             #        win.addstr(rootP - y, rootP+x, mmmMap[len(playMap)-1-y][x])
+            #-----------------
+
 
             #CHANGE TO INPUT PHASE
             PHASE = 1
@@ -622,8 +623,6 @@ def gamePhase(win):
 
         elif(PHASE == 1):
             ### INPUT LOOP
-            win.addstr(5,5,"INPUTPHASE")
-
             key = getch()
             if(INFOTIME):
                 if(key in inputKeys or key.upper() in inputKeys):
@@ -648,7 +647,7 @@ def infoPhase(win, INFOTIME, PRESSED):
             win.addstr(int(win.getmaxyx()[0]/2)-8+i, int(win.getmaxyx()[1]/2)-14,' '*30)
             cursesBox(win,int(win.getmaxyx()[1]/2)-14, int(win.getmaxyx()[0]/2)-8, 29,16)
 
-
+        #Writing the start tutorial
         win.addstr(int(win.getmaxyx()[0]/2)-6, int(win.getmaxyx()[1]/2)-7,    "Small Tutorial:")
         win.addstr(int(win.getmaxyx()[0]/2)-5, int(win.getmaxyx()[1]/2)-7,    "---------------")
 
@@ -689,12 +688,11 @@ def infoPhase(win, INFOTIME, PRESSED):
         else:
             return True
 
-
 def mainProgram():
     win = C.initscr()
 
     # 0:black, 1:red, 2:green, 3:yellow, 4:blue, 5:magenta, 6:cyan, and 7:white
-    #color pairs
+    #color pairs (curses use of color)
     C.start_color()
     C.use_default_colors()
     C.init_pair(WC['W'], C.COLOR_WHITE, -1)
@@ -733,9 +731,10 @@ def mainProgram():
             break
 
 
+#PYGLET used for splashscreen
 pWindow = pyglet.window.Window(1280,720, "SUMMER 2019", resizable = False)
-#screen = pyglet.window.get_platform().get_default_display().get_default_screen()
 
+#splashscreen tick
 def tick(t):
 
     pass
@@ -769,7 +768,7 @@ def on_draw():
     glColor3f(c,c,c)
     tex.blit(0,0)
 
-#SKIP
+#SKIP option
 @pWindow.event
 def on_key_press(key, mod):
     global keyEnd
@@ -779,9 +778,10 @@ def on_key_press(key, mod):
 
     keyEnd = True
 
-
+#pyglet
 pyglet.clock.schedule_interval(tick, 1/30)
 pyglet.app.run()
 pWindow.close()
 
+#main
 mainProgram()
