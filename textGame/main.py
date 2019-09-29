@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 import math
 import random as R
 import time
@@ -9,11 +8,21 @@ import termios
 import tty
 import os
 import curses as C 
-import pyglet
-from pyglet.gl import *
 
+try:
+    import pyglet
+    from pyglet.gl import *
+except ModuleNotFoundError:
+    os.system("pip3 install pyglet")
+try:
+    import webbrowser
+except ModuleNotFoundError:
+    os.system("pip3 install webbrowser")
+
+            
 sys.path.append('./data')
 import mapData
+import menuData
 
 #import list of levels from data/mapData.py
 mapData.makeLvls()
@@ -153,6 +162,9 @@ def getCollision(x,y, itemX, itemY):
     return collision, corner
 
 def getPlayerStartPos():
+    global playerPos, playerDir
+    playerDir = 270
+
     for y in range(len(playMap)):
         _y = list(playMap[y])
 
@@ -173,7 +185,7 @@ def borderDraw(win,winX,winY):
         win.addstr(y,winX-2,"#")
 
 def viewPrinting(win,winX,winY,view):
-    global cNum
+    global cNumf
 
     screenWidth = int(winX+1)
     midX = int(screenWidth/2)
@@ -410,23 +422,276 @@ def inputHandling(key):
                                         _tp_disty = item[2][1]
                                         break
 
+def menuDrawCenter(win, x,y,text, BOLD = False, SELECTED = False):
 
-def mainProgram():
-    getMap(lvlStage,0)
+    label = text
+    centXText = int(len(label[0])/2)
+    loop = 0
+    for row in label:
+        if(BOLD or SELECTED):
+            win.addstr(y+loop, x-centXText, row, C.A_BOLD)
+
+            if(SELECTED):
+                win.addstr(y+loop, x-(centXText+15), menuData.arrow[loop], C.A_BOLD)
+
+        else:
+            win.addstr(y+loop, x-centXText, row)
+
+        loop += 1
+
+def cursesBox(win, x, y, xScale, yScale):
+    for _x in range(xScale):
+        win.addstr(y, x+_x, '-')
+        win.addstr(y+yScale, x+_x, '-')
+    for _y in range(yScale):
+        win.addstr(y+_y, x, '|')
+        win.addstr(y+_y, x+xScale, '|')
+
+    win.addstr(y,x,'#')
+    win.addstr(y+yScale,x,'#')
+    win.addstr(y,x+xScale,'#')
+    win.addstr(y+yScale,x+xScale,'#')
+
+def menuPhase(win):
+    menuSelect = 0
+    PRESSED = -1
+    PHASE = 0
+    while True:
+        if(PHASE == 0):
+            midX = int((win.getmaxyx()[1]+1)/2)
+
+            win.clear()
+            
+            try:
+                if(PRESSED == -1):
+                    menuDrawCenter(win, midX, 2, menuData.topName, True)
+
+                    for i in range(4):
+                        menuDrawCenter(win, midX, 15+(8*i), menuData.signs[i], False, (menuSelect == i))
+                        if(i == 3):
+                            win.addstr(win.getmaxyx()[0]-3, win.getmaxyx()[1] - 54,
+                                    "GAME DEVELOPED FOR 2019 ITNETWORK.CZ SUMMER CONTEST")
+                            cursesBox(win, win.getmaxyx()[1]-56,win.getmaxyx()[0] - 4, 54, 2)
+
+
+                            win.addstr(win.getmaxyx()[0]-5, 3,
+                                    " UP - W || DOWN - S")
+                            win.addstr(win.getmaxyx()[0]-3, 3,
+                                    "     SELECT - D    ")
+                            cursesBox(win, 1, win.getmaxyx()[0]-6, 23, 4)
+
+                elif(PRESSED == 0): #START
+                    return "game"
+
+                elif(PRESSED == 1): #HELP 
+                    win.addstr(10, int(win.getmaxyx()[1]/2)-11 , "TO MOVE AROUND IN GAME:")
+                    win.addstr(11, int(win.getmaxyx()[1]/2)-11, "-----------------------")
+
+                    win.addstr(13, int(win.getmaxyx()[1]/2)-11, "      W - Forward      ")
+                    win.addstr(14, int(win.getmaxyx()[1]/2)-11, "      S - Backward     ")
+                    win.addstr(15, int(win.getmaxyx()[1]/2)-11, "      A - Rotate Left  ")
+                    win.addstr(16, int(win.getmaxyx()[1]/2)-11, "      D - Rotate Right ")
+                    win.addstr(17, int(win.getmaxyx()[1]/2)-11, "      P - Exit to menu ")
+
+
+                    win.addstr(21, int(win.getmaxyx()[1]/2)-4,  "IN MENU:")
+                    win.addstr(22, int(win.getmaxyx()[1]/2)-4,  "--------")
+
+                    win.addstr(24, int(win.getmaxyx()[1]/2)-4,  " W - Up ")
+                    win.addstr(25, int(win.getmaxyx()[1]/2)-4,  " S - Down")
+                    win.addstr(26, int(win.getmaxyx()[1]/2)-4,  " D - Select")
+
+                    cursesBox(win, int(win.getmaxyx()[1]/2) - 14, 8, 28, 20)
+
+                    win.addstr(31, int(win.getmaxyx()[1]/2)-3, "About:")
+                    win.addstr(32, int(win.getmaxyx()[1]/2)-3, "------")
+
+                    win.addstr(34, int(win.getmaxyx()[1]/2)-24, "The game was made as a part of 2019 summer contest")
+
+                    win.addstr(36, int(win.getmaxyx()[1]/2)-12, "AUTHOR: MAREK SRUMA  (CZE)")
+                    win.addstr(37, int(win.getmaxyx()[1]/2)-14, "CONTACT: marek.sruma@gmail.com")
+
+                    menuDrawCenter(win, midX, win.getmaxyx()[0] - 10, menuData.back, False, True)
+                    pass
+
+                elif(PRESSED == 3): #EXIT
+                    C.endwin()
+                    C.echo()
+                    C.curs_set(0)
+                    return "exit"
+
+            except:
+                pass
+
+            win.box()
+    
+            PHASE = 1
+
+            win.refresh()
+        
+        elif(PHASE == 1):
+            key = getch()
+
+            if(PRESSED == -1):
+                if(key == "w" or key == 'W'):
+                    menuSelect -= 1
+                    if(menuSelect < 0):
+                        menuSelect = 3
+                elif(key == "s" or key == 'S'):
+                    menuSelect += 1
+                    if(menuSelect > 3):
+                        menuSelect = 0
+                
+                if(key == 'd' or key == 'D'):
+                    if(menuSelect == 2):
+                        webbrowser.open_new_tab("https://www.itnetwork.cz/programovani/programatorske-souteze/itnetwork-summer-2019")
+
+                    else:
+                        PRESSED = menuSelect
+
+            elif(PRESSED == 1):
+                if(key == 'd' or key == 'D'):
+                    PRESSED = -1
+
+            if(key == 'P' or key == 'p'):
+                break
+
+            PHASE = 0
+
+def gamePhase(win):
+    getMap(0,0)
 
     getPlayerStartPos()
-
-    win = C.initscr()
-
-    C.savetty()
 
     # DRAWPHASE 0
     # INPUTPHASE 1
     PHASE = 0
     GAMERUNNING = True
+
+    INFOTIME = True
+    INFOPRESS = {'W':False,'S':False,'A':False,'D':False,'P':False}
+
+    while GAMERUNNING:
+        if(PHASE == 0):
+            drawTimeStart = time.time()
+
+            ### DRAW LOOP
+            win.clear()
+            
+            #window resolution (not much)
+            winX = int(win.getmaxyx()[1])
+            winY = int(win.getmaxyx()[0])
+
+            #displayBorder draw
+            #borderDraw(win,winX,winY)
+            win.box()
+            
+            #get view output from displaying(raycasting)
+            view = displaying(playerPos,playerDir)
+
+            #display all from rayCast (walls and stuff)
+            viewPrinting(win,winX,winY,view)            
+
+            if(INFOTIME):
+                INFOTIME = infoPhase(win, INFOTIME, INFOPRESS)
+                
+                if not(INFOTIME):
+                    win.refresh()
+                    continue
+
+            #DEBUGING POS + DIR
+            #win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
+            #win.addstr(4,3,"DIR: {}".format(playerDir))
+
+            #DEBUGING MINIMAP
+            #rootP = 15
+            #mmmMap = getMinMap(playerPos)
+            #for y in range(len(playMap)):
+            #    for x in range(len(playMap[y])):
+            #        win.addstr(rootP - y, rootP+x, mmmMap[len(playMap)-1-y][x])
+
+            #CHANGE TO INPUT PHASE
+            PHASE = 1
+
+            #DRAWTIME
+            while time.time() - drawTimeStart <= 1/10:
+                pass
+
+            win.refresh()
+            ### DRAW LOOP
+
+        elif(PHASE == 1):
+            ### INPUT LOOP
+            win.addstr(5,5,"INPUTPHASE")
+
+            key = getch()
+            if(INFOTIME):
+                if(key in inputKeys or key.upper() in inputKeys):
+                    s = key.upper()
+                    INFOPRESS[s] = True
+                
+
+            inputHandling(key)
+
+            if not(INFOTIME):
+                if(key == 'P' or key == 'p'):
+                    GAMERUNNING = False
+
+            PHASE = 0
+
+def infoPhase(win, INFOTIME, PRESSED):
+    if not (INFOTIME):
+        return False
     
-    INPUT = False
-    key = ''
+    else:
+        for i in range(16):
+            win.addstr(int(win.getmaxyx()[0]/2)-8+i, int(win.getmaxyx()[1]/2)-14,' '*30)
+            cursesBox(win,int(win.getmaxyx()[1]/2)-14, int(win.getmaxyx()[0]/2)-8, 29,16)
+
+
+        win.addstr(int(win.getmaxyx()[0]/2)-6, int(win.getmaxyx()[1]/2)-7,    "Small Tutorial:")
+        win.addstr(int(win.getmaxyx()[0]/2)-5, int(win.getmaxyx()[1]/2)-7,    "---------------")
+
+        done = True
+
+        if(PRESSED['W']):
+            win.addstr(int(win.getmaxyx()[0]/2) - 3, int(win.getmaxyx()[1]/2)-7, "  W - Forward  ")
+        else:
+            win.addstr(int(win.getmaxyx()[0]/2) - 3, int(win.getmaxyx()[1]/2)-7, "  W - Forward  ", C.A_DIM)
+            done = False
+
+        if(PRESSED['S']):
+            win.addstr(int(win.getmaxyx()[0]/2) - 1, int(win.getmaxyx()[1]/2)-7, "  S - Backward ")
+        else:
+            win.addstr(int(win.getmaxyx()[0]/2) - 1, int(win.getmaxyx()[1]/2)-7, "  S - Backward ", C.A_DIM)
+            done = False
+
+        if(PRESSED['A']):
+            win.addstr(int(win.getmaxyx()[0]/2) + 1, int(win.getmaxyx()[1]/2)-7, "  A - Rotate Left")
+        else:
+            win.addstr(int(win.getmaxyx()[0]/2) + 1, int(win.getmaxyx()[1]/2)-7, "  A - Rotate Left", C.A_DIM)
+            done = False
+
+        if(PRESSED['D']):
+            win.addstr(int(win.getmaxyx()[0]/2) + 3, int(win.getmaxyx()[1]/2)-7, "  D - Rotate Right")
+        else:
+            win.addstr(int(win.getmaxyx()[0]/2) + 3, int(win.getmaxyx()[1]/2)-7, "  D - Rotate Right", C.A_DIM)
+            done = False
+
+        if(PRESSED['P']):
+            win.addstr(int(win.getmaxyx()[0]/2) + 5, int(win.getmaxyx()[1]/2)-7, "  P - Exit to Menu")
+        else:
+            win.addstr(int(win.getmaxyx()[0]/2) + 5, int(win.getmaxyx()[1]/2)-7, "  P - Exit to Menu", C.A_DIM)
+            done = False
+
+        if(done):
+            return False
+        else:
+            return True
+
+
+def mainProgram():
+    win = C.initscr()
 
     # 0:black, 1:red, 2:green, 3:yellow, 4:blue, 5:magenta, 6:cyan, and 7:white
     #color pairs
@@ -450,70 +715,23 @@ def mainProgram():
     C.init_pair(WC['Y'], C.COLOR_YELLOW, -1)
     C.init_pair(WC['Y']+1, C.COLOR_YELLOW, C.COLOR_YELLOW)
 
-    # hide cursor
+    # curses options
     C.noecho()
     C.cbreak()
     C.curs_set(0)
 
     win.clear()
     win.refresh()
-    
-    while GAMERUNNING:
-        if(PHASE == 0):
-            ### DRAW LOOP
-            win.clear()
-            
-            #window resolution (not much)
-            winX = int(win.getmaxyx()[1])
-            winY = int(win.getmaxyx()[0])
 
-            #displayBorder draw
-            #borderDraw(win,winX,winY)
-            win.box()
-            
-            #get view output from displaying(raycasting)
-            view = displaying(playerPos,playerDir)
+    #APP LOOP
+    while True:
+        out = menuPhase(win)
+        
+        if(out == "game"):
+            gamePhase(win)
+        elif(out == "exit"):
+            break
 
-            #display all from rayCast (walls and stuff)
-            viewPrinting(win,winX,winY,view)            
-
-            #win.addstr(13,13,str(R.randint(0,9)))
-
-            #win.addstr(5,5,"DRAWPHASE")
-            win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
-            win.addstr(4,3,"DIR: {}".format(playerDir))
-            rootP = 15
-    
-            mmmMap = getMinMap(playerPos)
-            for y in range(len(playMap)):
-                for x in range(len(playMap[y])):
-                    win.addstr(rootP - y, rootP+x, mmmMap[len(playMap)-1-y][x])
-
-
-            PHASE = 1
-            win.refresh()
-            ### DRAW LOOP
-
-        elif(PHASE == 1):
-            ### INPUT LOOP
-            win.addstr(5,5,"INPUTPHASE")
-
-            key = getch()
-
-            inputHandling(key)
-            if(key == 'P'):
-                GAMERUNNING = False
-
-            #INPUT = True
-            PHASE = 0
-
-    C.endwin()
-    C.echo()
-    C.curs_set(0)
-
-
-#displaying(playerPos,playerDir)
-#quit()
 
 pWindow = pyglet.window.Window(1280,720, "SUMMER 2019", resizable = False)
 #screen = pyglet.window.get_platform().get_default_display().get_default_screen()
@@ -522,8 +740,10 @@ def tick(t):
 
     pass
 
+#SPLASHSCREEN
 c = 0.0
 gradUp=True
+keyEnd = False
 @pWindow.event
 def on_draw():
     global c
@@ -535,20 +755,32 @@ def on_draw():
 
     if(gradUp and c <= 1.0):
         c+=0.01
-        c+=1
+        if(keyEnd):
+            c+=0.05
         if(c >= 1):
             gradUp = False
     elif(gradUp == False and c > 0):
         c-=0.05
-        #c-=1
+        if(keyEnd):
+            c-=0.05
     elif(gradUp == False and c <= 0):
         pyglet.app.exit()
 
     glColor3f(c,c,c)
     tex.blit(0,0)
 
+#SKIP
+@pWindow.event
+def on_key_press(key, mod):
+    global keyEnd
+    if(key == pyglet.window.key.ESCAPE):
+        keyEnd = True
+        return pyglet.event.EVENT_HANDLED
 
-pyglet.clock.schedule_interval(tick, 1/60)
+    keyEnd = True
+
+
+pyglet.clock.schedule_interval(tick, 1/30)
 pyglet.app.run()
 pWindow.close()
 
