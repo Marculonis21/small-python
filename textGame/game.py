@@ -56,6 +56,8 @@ test_playMap = ["WWWWWWWWWWWWWW",
 playMap = []
 mapPorts = []
 lvlStage = 0
+gameEnd = False
+lvlEnd = False
 
 #input
 inputKeys =  {'w':'forward', 
@@ -88,7 +90,7 @@ FOV = 80
 #rayCastFidelity
 RCF = 50
 #portrotationbias
-PRB = 120
+PRB = 90
 
 
 def displaying(_pos,_dir):
@@ -305,10 +307,14 @@ def getch():
     return ch
 
 def getMap(lvlIndex, mapIndex):
-    global playMap, mapPorts
+    global playMap,lvlStage,mapPorts
+    global gameEnd
+    gameEnd = False
 
+    #get mapdata
     _map = lvls[lvlIndex][mapIndex].copy()
 
+    #format map
     _map.remove(_map[0])
     _map.remove(_map[len(_map)-2])
 
@@ -317,15 +323,25 @@ def getMap(lvlIndex, mapIndex):
     opts = _trans.split('|')
     opts.pop()
 
+    #update map settings 
+    playMap = _map
+    lvlStage = lvlIndex
+
+    #get ports on map
     _ports = []
     for item in opts:
         s1 = item.split('_')
         s2 = s1[2].translate({ord(i): None for i in '[]'}).split(',')
-        p = [int(s1[0]), int(s1[1]), [int(s2[0]),int(s2[1])]]
+
+        if('*' in s1[0]):
+            xs1 = s1[0].split('*')
+            p = [int(xs1[0]), int(xs1[1])-1, int(s1[1]), [int(s2[0]),int(s2[1])]]
+        else:
+            p = [ int(s1[0]),    lvlStage, int(s1[1]), [int(s2[0]),int(s2[1])]]
 
         _ports.append(p)
 
-    playMap = _map
+    #update ports settings
     mapPorts = _ports
 
 def inputHandling(key):
@@ -369,14 +385,14 @@ def inputHandling(key):
                 playerDir = playerDir - 360
 
 
-        _tp_lvlStage = -1
+        _tp_lvlStage = -2
         _tp_lvl = -1
         _tp_distx = -1
         _tp_disty = -1
         for y in range(len(playMap)):
 
             #If there is a need for port (end of the for loop)
-            if(_tp_lvlStage != -1):
+            if(_tp_lvlStage != -2):
                 getMap(_tp_lvlStage, _tp_lvl)
 
                 playerPos['x'] += _tp_distx*pieceSize
@@ -391,12 +407,12 @@ def inputHandling(key):
                         playerPos = oldPos
 
                 #Map teleports
-                if(playMap[y][x] in "0123456789"):
+                if(playMap[y][x] in "012345678"):
                     if(getCollision(x, y, playerPos['x'], playerPos['y'])[0]):
                         for item in mapPorts:
                             if(item[0] == int(playMap[y][x])):
-                                lowBound = item[1] - PRB/2
-                                upBound = item[1] + PRB/2
+                                lowBound = item[2] - PRB/2
+                                upBound = item[2] + PRB/2
 
                                 if(lowBound < 0):
                                     lowBound = 360 + lowBound 
@@ -404,23 +420,34 @@ def inputHandling(key):
                                 if(upBound >= 360):
                                     upBound = upBound - 360
 
-                                if(item[1] == 0):
+                                if(item[2] == 0):
                                     if(lowBound <= playerDir <= 360
                                            or 0 <= playerDir <= upBound):
-                                        _tp_lvlStage = lvlStage
+                                        _tp_lvlStage = item[1]
                                         _tp_lvl = item[0]
-                                        _tp_distx = item[2][0]
-                                        _tp_disty = item[2][1]
+                                        _tp_distx = item[3][0]
+                                        _tp_disty = item[3][1]
                                         break
 
                                 else:
                                     if(lowBound <= playerDir <= upBound):
-                                        _tp_lvlStage = lvlStage
+                                        _tp_lvlStage = item[1]
                                         _tp_lvl = item[0]
-                                        _tp_distx = item[2][0]
-                                        _tp_disty = item[2][1]
+                                        _tp_distx = item[3][0]
+                                        _tp_disty = item[3][1]
                                         break
 
+                if(playMap[y][x] in "9"):
+                    if(getCollision(x, y, playerPos['x'], playerPos['y'])[0]):
+                        if(lvlStage == 0):
+                            global lvlEnd
+                            lvlEnd = True
+
+                        else:
+                            global gameEnd
+                            gameEnd = True
+
+                        
 def menuDrawCenter(win, x,y,text, BOLD = False, SELECTED = False):
     label = text
     centXText = int(len(label[0])/2)
@@ -598,18 +625,22 @@ def gamePhase(win):
 
             #FOR DEBUGING
             #-----------------
-            #POS + DIR
-            #win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
-            #win.addstr(4,3,"DIR: {}".format(playerDir))
+            #try:
+            #    #POS + DIR
+            #    win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
+            #    win.addstr(4,3,"DIR: {}".format(playerDir))
 
-            #MINIMAP
-            #rootP = 15
-            #mmmMap = getMinMap(playerPos)
-            #for y in range(len(playMap)):
-            #    for x in range(len(playMap[y])):
-            #        win.addstr(rootP - y, rootP+x, mmmMap[len(playMap)-1-y][x])
+            #    #MINIMAP
+            #    rootP = 15
+            #    mmmMap = getMinMap(playerPos)
+            #    for y in range(len(playMap)):
+            #        for x in range(len(playMap[y])):
+            #            win.addstr(rootP - y, rootP+x, mmmMap[len(playMap)-1-y][x])
+
+            #    win.addstr(rootP + 3, rootP, str(mapPorts))
+            #except:
+            #    pass
             #-----------------
-
 
             #CHANGE TO INPUT PHASE
             PHASE = 1
@@ -632,11 +663,42 @@ def gamePhase(win):
 
             inputHandling(key)
 
+            if (gameEnd):
+                gameEndFunc(win)
+                break
+            
+            global lvlEnd
+            if (lvlEnd):
+                lvlEnd = False
+                gameEndFunc(win, True)
+                getMap(1,0)
+                getPlayerStartPos()
+
             if not(INFOTIME):
                 if(key == 'P' or key == 'p'):
                     GAMERUNNING = False
 
             PHASE = 0
+
+def gameEndFunc(win, lvl = False):
+    for i in range(10):
+        win.addstr(int(win.getmaxyx()[0]/2)-8+i, int(win.getmaxyx()[1]/2)-10, ' '*19)
+
+    cursesBox(win,int(win.getmaxyx()[1]/2)-10, int(win.getmaxyx()[0]/2)-8, 19,10)
+
+    if not (lvl):
+        win.addstr(int(win.getmaxyx()[0]/2)-3, int(win.getmaxyx()[1]/2)-8, "YOU WON THE GAME")
+        win.addstr(int(win.getmaxyx()[0]/2)-2, int(win.getmaxyx()[1]/2)-8, "----------------")
+
+    else:
+        win.addstr(int(win.getmaxyx()[0]/2)-3, int(win.getmaxyx()[1]/2)-8, "  SECOND LEVEL  ")
+        win.addstr(int(win.getmaxyx()[0]/2)-2, int(win.getmaxyx()[1]/2)-8, "----------------")
+
+    win.refresh()
+
+
+    time.sleep(3)
+    getch()
 
 def infoPhase(win, INFOTIME, PRESSED):
     if not (INFOTIME):

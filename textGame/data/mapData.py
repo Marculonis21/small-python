@@ -108,7 +108,7 @@ def l1():
             "    W88W",
             "    GGGG",
             "       .",
-            "(6_270_[0,0]|8_0_[-4,2]|)"]
+            "(6_270_[0,0]|8_0_[-4,1]|)"]
     l1.append(l1_7)
 
     l1_8 = [".                  ",
@@ -119,7 +119,7 @@ def l1():
             "R            11111R",
             "M           WWWWWWW",
             "Y     WWWWWWW      ",
-            "W000  W            ",
+            "W999  W            ",
             "W  WWWW            ",
             "W  WWWW            ",
             "W  WWWW            ",
@@ -127,27 +127,28 @@ def l1():
             "W  WWWW            ",
             "GGGGWWW            ",
             "                  .",
-            "(1_90_[-12,0]|0_180_[0,0]|)"]
+            "(1_90_[-12,0]|)"]
     l1.append(l1_8)
 
     levels.append(l1)
 
 def l2():
     l2 = []
+    l3 = []
     l2_0 = [".                  ",
             "WWWWWWWRRRRWWW     ",
             "W            W     ",
             "W            W     ",
             "W       W    WGGGGG",
             "W            G1    ",
-            "W .           1    ",
+            "W  .          1    ",
             "W            G1    ",
             "W       W    WGGGGG",
             "W            W     ",
             "W            W     ",
             "WWWWWWWBBBBWWW     ",
             "                  .",
-            "(1_90_[-13,-3]|)"]
+            "(1_90_[-13,-1]|)"]
     
     l2_1 = [".                  ",
             "         WWWWW     ",
@@ -161,7 +162,7 @@ def l2():
             "         WWWWW     ",
             "                  .",
             "(2_90_[0,0]|3_0_[0,0]|4_270_[0,0]|5_180_[0,0]|)"]
-    
+
     l2_2 = [".                  ",
             "         WWWWW     ",
             "     GGGGG333GGGGG ",
@@ -174,7 +175,7 @@ def l2():
             "         WWWWW     ",
             "                  .",
             "(3_0_[0,0]|4_270_[0,0]|5_180_[0,0]|)"]
-    
+
     l2_3 = [".                  ",
             "         WWWWW     ",
             "     GGGGG   GGGGG ",
@@ -247,14 +248,14 @@ def l2():
             "W            W",
             "WWWWWWWBBBBWWW",
             "             .",
-            "(0*3_180_[,]|)"]
+            "(0*3_180_[-3,7]|)"]
 
     l3_0 = [".           ",
             "WWWWWWWWWWWW",
             "     RR     ",
             "     RR     ",
-            "RRRR1RR2RRRR",
-            "   R    R   ",
+            "RRRR1MM2RRRR",
+            "   M    M   ",
             "   R    R   ",
             "   R    R   ",
             "   R    R   ",
@@ -264,34 +265,140 @@ def l2():
             "   R    R   ", 
             "   WRRRRW   ",
             "           .",
-            "(1_180_[10,8]|2_180_[0,0])|"]
+            "(1_180_[10,8]|2_180_[0,1])|"]
 
     l3_1 = [".               ",
             "WWWWWWWWWWWW    ",
             "     RR         ",
             "     RR         ",
-            "RRRR1RR2RRRR    ",
-            "   R    R       ",
+            "RRRR1MM2RRRR    ",
+            "   M    M       ",
             "   R    R       ",
             "   R    R       ",
             "   R    R       ",
             "   R    RWWWWWWW",
             "   R           R",
             "   R           R",
-            "   R    RRRRRR R", 
+            "   R    RRRRRR M", 
             "   WRRRRW     W ",
             "               .",
-            "(1_180_[10,8]|2_180_[0,0])|"]
+            "(1_180_[10,8]|2_180_[0,1])|"]
 
-    l3_2 = [".                         ",
-            "          WWWWWWWWWWWWWWWW",
-            "WWWWWWWWWWW        3      ",
-            "     RR            YYYYYYY",
-            "     RR            YYYY   ",
-            "RRRR1RR2RRR        4  W   ",
-            "       W  RRRRRRRRRR  W   ",
-            "                   R  W   ",
-            "                         .",
-            "(1_180_[10,8]|2_180_[0,0])|"]
+    l3_2 = [".                          ",
+            "           WWWWWWWWWWWWWWWW",
+            "WWWWWWWWWWWW        3      ",
+            "     RR             MRRRRRR",
+            "     RR             MRRR   ",
+            "RRRR MM RRRR        4  W   ",
+            "       W   RRRRRRRRRR  W   ",
+            "                    R  W   ",
+            "                    R  W  .",
+            "(3_90_[-19,1]|4_90_[-8,3])|"]
+
+    l3_3 = [".                     ",
+            "      WWWWWWWWWWWWWWWW",
+            "WWWWWWW        5      ",
+            "W              MRRRRRR",
+            "WMRRRRR        MRRR   ",
+            "      R        6  W   ",
+            "      RRRRRRRRRR  W   ",
+            "               R  W   ",
+            "               R  W   ",
+            "                     .",
+            "(5_90_[-13,9]|6_90_[-8,-3])|"]
+
+    l3_4 = [".               ",
+            "WWWWWWWWWWWW    ",
+            "     RR         ",
+            "     RR         ",
+            "RRRR1MM2RRRR    ",
+            "   M    M       ",
+            "   R    R       ",
+            "   R    R  MMRRR",
+            "   R    R  W   W",
+            "   R    RWWWR  W",
+            "   R           W",
+            "   R           W",
+            "   R    RRRRRRRW", 
+            "   WRRRRW       ",
+            "               .",
+            "(1_180_[10,8]|2_180_[0,1])|"]
     
+    l3_5 = [".                ",
+            "     WWWWWWWWWWWW",
+            "          RR     ",
+            "          RR     ",
+            "     RRRR1MM2RRRR",
+            "        M    M   ",
+            "        R    R   ",
+            "        R    R   ",
+            "        R    R   ",
+            "        R    R   ",
+            "WWWWWWWWR    R   ",
+            "W            R   ",
+            "RMRRRRRRR    R   ", 
+            "        WRRRRW   ",
+            "            .",
+            "(1_180_[5,8]|2_180_[-5,1])|"]
+
+    l3_6 = [".             ",
+            "       MRRR   ",
+            "      W   W   ",
+            "       R  W   ",
+            "       R  W   ",
+            "       R  W   ", 
+            "WWWWWWWR  RWWW",
+            "W      8888  W",
+            "W            W",
+            "W       R    W",
+            "W            G",
+            "W            Y",
+            "W            G",
+            "W       B    W",
+            "W            W",
+            "W            W",
+            "WWWWWWWBBBBWWW",
+            "             .",
+            "(8*2_0_[0,-5]|)"]
+
+    l2_8 = [".             ",
+            "WWWWWWWRYYRWWW",
+            "W            W",
+            "W            W",
+            "W       R    W",
+            "W            G",
+            "W            Y",
+            "W            G",
+            "W       B    W",
+            "W            W",
+            "W            W",
+            "WWWWWWWB  BWWW",
+            "       G99R   ",
+            "       G  R   ",
+            "       G  R   ",
+            "       G  R   ",
+            "       G  R   ",
+            "       G  R   ",
+            "             .",
+            "(9_0_[0,0]|)"]
+
+    l2.append(l2_0)
+    l2.append(l2_1)
+    l2.append(l2_2)
+    l2.append(l2_3)
+    l2.append(l2_4)
+    l2.append(l2_5)
+    l2.append(l2_6)
+    l2.append(l2_7)
+    l2.append(l2_8)
+
+    l3.append(l3_0)
+    l3.append(l3_1)
+    l3.append(l3_2)
+    l3.append(l3_3)
+    l3.append(l3_4)
+    l3.append(l3_5)
+    l3.append(l3_6)
+
     levels.append(l2)
+    levels.append(l3)
