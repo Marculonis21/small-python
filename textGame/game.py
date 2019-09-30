@@ -535,6 +535,8 @@ def menuPhase(win):
                     win.addstr(36, int(win.getmaxyx()[1]/2)-12, "AUTHOR: MAREK SRUMA  (CZE)")
                     win.addstr(37, int(win.getmaxyx()[1]/2)-14, "CONTACT: marek.sruma@gmail.com")
 
+                    win.addstr(38, int(win.getmaxyx()[1]/2)-31, "https://github.com/Marculonis21/main-python/tree/master/textGame")
+
                     menuDrawCenter(win, midX, win.getmaxyx()[0] - 10, menuData.back, False, True)
                     pass
 
