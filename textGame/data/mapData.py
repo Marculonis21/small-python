@@ -2,6 +2,7 @@ levels = []
 
 def makeLvls():
     l1()
+    l2()
 
 def l1():
     l1 = []
@@ -130,3 +131,104 @@ def l1():
     l1.append(l1_8)
 
     levels.append(l1)
+
+def l2():
+    l2 = []
+    l2_0 = [".                  ",
+            "WWWWWWWRRRRWWW     ",
+            "W            W     ",
+            "W            W     ",
+            "W       W    WGGGGG",
+            "W            G1    ",
+            "W .           1    ",
+            "W            G1    ",
+            "W       W    WGGGGG",
+            "W            W     ",
+            "W            W     ",
+            "WWWWWWWBBBBWWW     ",
+            "                  .",
+            "(1_90_[-13,-3]|)"]
+    
+    l2_1 = [".                  ",
+            "         WWWWW     ",
+            "     GGGGGWW GGGGG ",
+            "GGGGGG     W     GG",
+            "G      222 W      G",
+            "G      222WWW     G",
+            "G      222 W      G",
+            "GGGGGG     W     GG",
+            "     GGGGGWW GGGGG ",
+            "         WWWWW     ",
+            "                  .",
+            "(2_90_[0,0]|3_0_[0,0]|4_270_[0,0]|5_180_[0,0]|)"]
+    
+    l2_2 = [".                  ",
+            "         WWWWW     ",
+            "     GGGGG333GGGGG ",
+            "GGGGGG    333    GG",
+            "G          W      G",
+            "G         RWWWWWWWG",
+            "G          W      G",
+            "GGGGGG     W     GG",
+            "     GGGGGWW GGGGG ",
+            "         WWWWW     ",
+            "                  .",
+            "(3_0_[0,0]|4_270_[0,0]|5_180_[0,0]|)"]
+    
+    l2_3 = [".                  ",
+            "         WWWWW     ",
+            "     GGGGG   GGGGG ",
+            "GGGGGG           GG",
+            "G          B 444  G",
+            "G         RWW444  G",
+            "G          W 444  G",
+            "GGGGGG     W     GG",
+            "     GGGGG WWGGGGG ",
+            "         WWWWW     ",
+            "                  .",
+            "(4_270_[0,0]|5_180_[0,0]|)"]
+    
+    l2_4 = [".                  ",
+            "         WWWWW     ",
+            "     GGGGG   GGGGG ",
+            "GGGGGG           GG",
+            "G          B      G",
+            "G         RWY     G",
+            "G          W      G",
+            "GGGGGG    555    GG",
+            "     GGGGG555GGGGG ",
+            "         WWWWW     ",
+            "                  .",
+            "(5_180_[0,0]|)"]
+    
+    l2_5 = [".                  ",
+            "         WWWWW     ",
+            "     GGGGG   GGGGG ",
+            "GGGGGG6          GG",
+            "G     6    B      G",
+            "      6   RWY     G",
+            "G     6    M      G",
+            "GGGGGG6          GG",
+            "     GGGGG    GGGGG",
+            "         WWWWW     ",
+            "                  .",
+            "(6_270_[,]|)"]
+    
+    l2_6 = [".                  ",
+            "WWWWWWWRRRRWWW     ",
+            "W            W     ",
+            "W            W     ",
+            "W       W    WGGGGG",
+            "W            G1    ",
+            "W .           1    ",
+            "W            G1    ",
+            "W       W    WGGGGG",
+            "W            W     ",
+            "W            W     ",
+            "WWWWWWWBBBBWWW     ",
+            "                  .",
+            "(1_90_[-13,-3]|)"]
+    
+    
+    
+    levels.append(l2)
