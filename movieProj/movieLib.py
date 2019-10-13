@@ -19,8 +19,8 @@ scrollY = 0
 mouseX = -1
 mouseY = -1
 
-#path = os.curdir
 path = "/media/marculonis/""My Passport""/""Filmy"""
+#path = "./testData"
 if(len(sys.argv) > 1):
     path = sys.argv[1]
 
@@ -30,6 +30,7 @@ imageList = {}
 
 def webScrape(_name):
     #tqdm.tqdm.write(_name)
+    print(_name)
     name = _name.split(';')
     name.pop()
     sName = name[0]
@@ -120,7 +121,7 @@ def sortImages(ABCSort = True):
 
     if(ABCSort):
         #ALPHABET SORT
-        imageList = dict(sorted(imageList.items(),reverse=True))
+        imageList = dict(sorted(imageList.items()))
     else:
         #SCORE SORT
         imageList = dict(sorted(imageList.items(), key = lambda x: x[0].split('_')[1]))
@@ -149,7 +150,7 @@ def drawRect(x,y,sizeX,sizeY, r=1,g=1,b=1):
     glVertex2f(int(x), int(y+sizeY))
     glEnd()
 
-def drawText(text, x, y, anX='center',anY='center', r=1,g=1,b=1,a=1, size=15, shadow=False, shadowS=2, lWidth=300, hAlign="left"):
+def drawText(text, x, y, anX='center',anY='center', r=1,g=1,b=1,a=1, size=15, shadow=False, shadowS=4, lWidth=300, hAlign="left"):
     label = pyglet.text.Label(str(text),
                               font_size=size,
                               anchor_x=anX,
@@ -181,11 +182,7 @@ def drawText(text, x, y, anX='center',anY='center', r=1,g=1,b=1,a=1, size=15, sh
 
     label.draw()
 
-def winButton(img, text, x, y, sizeX, sizeY, hover=False, clicked=False):
-    x = 100
-    y = 100
-    sizeX = 150
-    sizeY = 0
+def winButton(img, text, x, y, sizeX=0, sizeY=0, hover=False, clicked=False):
     if(sizeX != 0):
         img.width = sizeX
         sizeY = sizeX*1.47
@@ -194,22 +191,26 @@ def winButton(img, text, x, y, sizeX, sizeY, hover=False, clicked=False):
         img.height = sizeY
         sizeX = sizeY/1.47
         img.width = sizeX
+    else:
+        sizeX = img.width
+        sizeY = img.height
+        print(sizeX)
+        print(sizeY)
 
-    if(img != None):
-        if(hover):
-            drawImage(img, x+sizeX/2, y+sizeY/2, 0.7)
-        else:
-            drawImage(img, x+sizeX/2, y+sizeY/2, 1.0)
+    if(hover):
+        drawImage(img, x, y, 0.5)
+    else:
+        drawImage(img, x, y, 0.9)
 
-        if(clicked):
-            print(img)
+    if(clicked):
+        print(img)
 
 
     if(text != ""):
         if(hover):
-            drawText(text, x, y, r=0.8,g=0.8,b=0.8)
+            drawText(text, x+sizeX/2, y-sizeY/2, r=0.8,g=0.8,b=0.8)
         else:
-            drawText(text, x, y, r=1,g=1,b=1)
+            drawText(text, x+sizeX/2, y-sizeY/2, r=1,g=1,b=1)
 
 
 def tick(t):
@@ -221,35 +222,67 @@ def on_mouse_motion(x, y, dx, dy):
     global mouseX, mouseY
     mouseX = x
     mouseY = y
+    #print(x,y)
 
 @window.event
 def on_draw():
+    global scrollY
     glClearColor(0.3,0.3,0.3,1)
     glClear(GL_COLOR_BUFFER_BIT)
     glLoadIdentity()
 
-    drawRect(9,  scrollY + window.height-9,  160, -52, 0.5,0.5,0.5)
-    drawRect(10, scrollY + window.height-10, 158, -50, 0.2,0.2,0.2)
-    drawText("Movies", 20, scrollY + window.height-35, anX='left',anY='center', size=30, shadow=True)
+    drawRect(0, scrollY+window.height, window.width, -75, 0.25,0.25,0.25)
+    drawRect(0, scrollY+window.height-75, window.width, -4, 0.1,0.1,0.1)
 
+    drawText("Movies", 20, scrollY + window.height-35, anX='left',anY='center', r=0.9,g=0.9,b=0.9, size=45, shadow=True)
+
+    #drawLine(window.width/5*1,0,window.width/5*1,window.height, 1,0,0)
+    #drawLine(window.width/5*2,0,window.width/5*2,window.height, 1,0,0)
+    #drawLine(window.width/5*3,0,window.width/5*3,window.height, 1,0,0)
+    #drawLine(window.width/5*4,0,window.width/5*4,window.height, 1,0,0)
+    #drawLine(window.width/5*5,0,window.width/5*5,window.height, 1,0,0)
+
+    #drawLine(0,window.height/4,window.width,window.height/4, 1,0,0)
+    #drawLine(0,window.height/7,window.width,window.height/7, 1,0,0)
+    #drawLine(0,window.height/4*3,window.width,window.height/4*3, 1,0,0)
+    #drawLine(0,window.height/7*6,window.width,window.height/7*6, 1,0,0)
+
+    if(mouseY<window.height/7):
+        scrollY+=7
+    elif(mouseY<window.height/4):
+        scrollY+=3
+
+    if(mouseY>window.height/7*6):
+        if(scrollY >= 7):
+            scrollY-= 7
+    elif(mouseY>window.height/4*3):
+        if(scrollY >= 3):
+            scrollY-=3
+    print(scrollY)
+
+    #sizeY = sizeX*1.47
+    xLoop = 0
+    yLoop = 0
     for item in imageList.keys():
-        drawImage(imageList[item], window.width/2,window.height/2, 0.7)
-        drawImage(imageList[item], window.width/2+100,window.height/2, 1)
-
-    #winButton()
+        winButton(imageList[item], "", window.width/5*(xLoop+1), scrollY+window.height-200 - (230*yLoop), sizeX=window.width/6)
+        xLoop += 1
+        if(xLoop > 3):
+            xLoop = 0
+            yLoop += 1
 
     #drawImage(imageList[0], window.width/2,window.height/2)
 
 _files = findFiles(path, ["mkv","avi","mp4"], False)
+
 files = _files.split('\n')
 files.sort()
 nFiles = [x.split('/').pop() for x in files]
 nFiles.remove(nFiles[0])
-
 
 for item in tqdm.tqdm(range(len(nFiles))):
     webScrape(nFiles[item])
 
 loadImages()
 
+pyglet.clock.schedule_interval(tick, 1/60)
 pyglet.app.run()

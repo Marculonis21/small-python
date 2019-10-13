@@ -627,21 +627,21 @@ def gamePhase(win):
 
             #FOR DEBUGING
             #-----------------
-            #try:
+            try:
             #    #POS + DIR
-            #    win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
-            #    win.addstr(4,3,"DIR: {}".format(playerDir))
+                win.addstr(3,3,"POS: X:{} Y:{}".format(playerPos['x'],playerPos['y']))
+                win.addstr(4,3,"DIR: {}".format(playerDir))
 
             #    #MINIMAP
-            #    rootP = 15
-            #    mmmMap = getMinMap(playerPos)
-            #    for y in range(len(playMap)):
-            #        for x in range(len(playMap[y])):
-            #            win.addstr(rootP - y, rootP+x, mmmMap[len(playMap)-1-y][x])
+                rootP = 15
+                mmmMap = getMinMap(playerPos)
+                for y in range(len(playMap)):
+                    for x in range(len(playMap[y])):
+                        win.addstr(rootP - y, rootP+x, mmmMap[len(playMap)-1-y][x])
 
-            #    win.addstr(rootP + 3, rootP, str(mapPorts))
-            #except:
-            #    pass
+                win.addstr(rootP + 3, rootP, str(mapPorts))
+            except:
+                pass
             #-----------------
 
             #CHANGE TO INPUT PHASE
