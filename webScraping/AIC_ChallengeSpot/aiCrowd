@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PATH="/home/marculonis/Desktop/main-python/webScraping/AIC_ChallengeSpot/AIC_Spoter.py"
+
+/usr/bin/python3 $PATH
