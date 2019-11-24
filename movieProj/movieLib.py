@@ -3,6 +3,7 @@
 import os 
 import sys
 import tqdm
+import time
 
 import urllib.request as req
 from bs4 import BeautifulSoup as BS
@@ -15,7 +16,11 @@ glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 window = pyglet.window.Window(800,800, "Movies", resizable = True)
 scrollY = 0
+debugLines = False
+abcSort = True
+sortCount = 0
 
+mouseClick = False
 mouseX = -1
 mouseY = -1
 
@@ -24,23 +29,20 @@ path = "/media/marculonis/""My Passport""/""Filmy"""
 if(len(sys.argv) > 1):
     path = sys.argv[1]
 
-dataFiles = os.listdir("data/")
+dataFiles = os.listdir("movieData/")
 fileNames = [x.rsplit('_',1)[0] for x in dataFiles]
 imageList = {}
+menuIcons = {}
 
-def webScrape(_name):
-    #tqdm.tqdm.write(_name)
-    print(_name)
-    name = _name.split(';')
+
+
+def webScrape(actName):
+    name = actName.split(';')
     name.pop()
     sName = name[0]
 
-    #fff = list(sName)
-    #for i in range(5): fff.pop()
-    #sName = ''.join(fff)
-
-    if('pic_'+sName in fileNames):
-       return
+    if(actName+'@pic_'+sName in fileNames):
+        return
 
     s = sName[:len(sName)-4] + "(" + sName[len(sName)-4:] + ")"
 
@@ -82,8 +84,7 @@ def webScrape(_name):
     _score = soup.find(class_='ratingValue')
     score = _score.find("span").contents[0]
 
-    req.urlretrieve(img, "data/pic_"+sName+"_"+score)
-
+    req.urlretrieve(img, "movieData/"+actName+"@pic_"+sName+"_"+score)
 
 def findFiles(_dir, _ext, expand = True):
     found = ""
@@ -103,28 +104,47 @@ def findFiles(_dir, _ext, expand = True):
 def loadImages():
     global imageList
 
-    imagePaths = os.listdir("data/")
+    imagePaths = os.listdir("movieData/")
 
     for item in imagePaths:
-        img = pyglet.image.load("data/"+item)
+        img = pyglet.image.load("movieData/"+item)
         tex = img.get_texture()
         actW = tex.width 
         actH = tex.height
         rat = actW/actH
 
-        imageList[item.split('_', 1)[1]] = tex
+        #imageList[item.split('_', 1)[1]] = tex
+        imageList[item] = tex
 
     sortImages()
 
-def sortImages(ABCSort = True):
-    global imageList
+
+    global menuIcons
+    img = pyglet.image.load("projectData/abcIco.png")
+    tex = img.get_texture()
+    actW = 50 
+    actH = 50 
+    tex.width = actW
+    tex.height = actH
+    menuIcons["abcIco.png"] = tex
+    
+    img = pyglet.image.load("projectData/scoreIco.png")
+    tex = img.get_texture()
+    actW = 46
+    actH = 46 
+    tex.width = actW
+    tex.height = actH
+    menuIcons["scoreIco.png"] = tex
+
+def sortImages(ABCSort = True, pCount=1):
+    global imageList, sortReverse
 
     if(ABCSort):
         #ALPHABET SORT
-        imageList = dict(sorted(imageList.items()))
+        imageList = dict(sorted(imageList.items(), reverse=(pCount%2==0)))
     else:
         #SCORE SORT
-        imageList = dict(sorted(imageList.items(), key = lambda x: x[0].split('_')[1]))
+        imageList = dict(sorted(imageList.items(), key = lambda x: x[0].split('_')[-1:], reverse=((pCount+1)%2==0)))
 
 
 def drawImage(image, x, y, c):
@@ -182,7 +202,8 @@ def drawText(text, x, y, anX='center',anY='center', r=1,g=1,b=1,a=1, size=15, sh
 
     label.draw()
 
-def winButton(img, text, x, y, sizeX=0, sizeY=0, hover=False, clicked=False):
+def winButton(img, text, x, y, sizeX=0, sizeY=0, hover=False, clicked=False, value='vlc', mName=""):
+    global mouseClick
     if(sizeX != 0):
         img.width = sizeX
         sizeY = sizeX*1.47
@@ -194,16 +215,52 @@ def winButton(img, text, x, y, sizeX=0, sizeY=0, hover=False, clicked=False):
     else:
         sizeX = img.width
         sizeY = img.height
-        print(sizeX)
-        print(sizeY)
 
     if(hover):
         drawImage(img, x, y, 0.5)
     else:
         drawImage(img, x, y, 0.9)
+    
+    global abcSort, sortCount
+    if(value=='abcsort'):
+        if(abcSort):
+            drawImage(img, x, y, 0.9)
+        else:
+            drawImage(img, x, y, 0.4)
+    elif(value=='scoresort'):
+        if not(abcSort):
+            drawImage(img, x, y, 0.9)
+        else:
+            drawImage(img, x, y, 0.4)
 
-    if(clicked):
-        print(img)
+    if(clicked): 
+        drawImage(img, x, y, 1)
+        mouseClick = False
+
+        if(value=='abcsort'):
+            if(abcSort):
+                sortCount += 1
+            else:
+                sortCount = 1
+
+            abcSort = True 
+            sortImages(True,sortCount)
+
+        elif(value=='scoresort'):
+            if not (abcSort):
+                sortCount += 1
+            else:
+                sortCount = 1
+
+            abcSort = False
+            sortImages(False,sortCount)
+
+        elif(value=='vlc'):
+            print(mName)
+            print('vlc -fd "{}/{}"'.format(path,mName.split('@')[0]))
+
+            #CVLC = vlc without interface
+            os.system('vlc -fd "{}/{}"'.format(path,mName.split('@')[0]))
 
 
     if(text != ""):
@@ -222,13 +279,31 @@ def on_mouse_motion(x, y, dx, dy):
     global mouseX, mouseY
     mouseX = x
     mouseY = y
+
     #print(x,y)
 
 @window.event
+def on_mouse_press(x,y,button,mod):
+    global mouseClick
+    mouseClick = True
+
+@window.event
+def on_key_press(key,mod):
+    if(key == 113 and mod == 17):
+        global debugLines
+        if(debugLines):
+            debugLines = False
+        else:
+            debugLines = True
+            
+@window.event
 def on_draw():
-    global scrollY
+    global scrollY,debugLfines,mouseX,mouseY,mouseClick,sortCount
+
     glClearColor(0.3,0.3,0.3,1)
     glClear(GL_COLOR_BUFFER_BIT)
+    pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
+    pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
     glLoadIdentity()
 
     drawRect(0, scrollY+window.height, window.width, -75, 0.25,0.25,0.25)
@@ -236,42 +311,70 @@ def on_draw():
 
     drawText("Movies", 20, scrollY + window.height-35, anX='left',anY='center', r=0.9,g=0.9,b=0.9, size=45, shadow=True)
 
-    #drawLine(window.width/5*1,0,window.width/5*1,window.height, 1,0,0)
-    #drawLine(window.width/5*2,0,window.width/5*2,window.height, 1,0,0)
-    #drawLine(window.width/5*3,0,window.width/5*3,window.height, 1,0,0)
-    #drawLine(window.width/5*4,0,window.width/5*4,window.height, 1,0,0)
-    #drawLine(window.width/5*5,0,window.width/5*5,window.height, 1,0,0)
+    #DEBUGING UPDOWN lines
+    if(debugLines):
+        drawLine(0,window.height/6,window.width,window.height/6, 1,0,0)
+        drawLine(0,window.height/10,window.width,window.height/10, 1,0,0)
+        drawLine(0,window.height/6*5,window.width,window.height/6*5, 1,0,0)
+        drawLine(0,window.height/10*9,window.width,window.height/10*9, 1,0,0)
 
-    #drawLine(0,window.height/4,window.width,window.height/4, 1,0,0)
-    #drawLine(0,window.height/7,window.width,window.height/7, 1,0,0)
-    #drawLine(0,window.height/4*3,window.width,window.height/4*3, 1,0,0)
-    #drawLine(0,window.height/7*6,window.width,window.height/7*6, 1,0,0)
-
-    if(mouseY<window.height/7):
+    #UP DOWN MOVEMENT
+    if(mouseY<window.height/10):
         scrollY+=7
-    elif(mouseY<window.height/4):
+    elif(mouseY<window.height/6):
         scrollY+=3
 
-    if(mouseY>window.height/7*6):
+    if(mouseY>window.height/10*9):
         if(scrollY >= 7):
             scrollY-= 7
-    elif(mouseY>window.height/4*3):
+    elif(mouseY>window.height/6*5):
         if(scrollY >= 3):
             scrollY-=3
-    print(scrollY)
 
-    #sizeY = sizeX*1.47
+    #MENU ICONS DRAWING
+    menuIc = {0:"-40|-40|abcsort|abcIco.png", 1:"-100|-40|scoresort|scoreIco.png"}
+    for i in range(len(menuIc)):
+        x = window.width+int(menuIc[i].split('|')[0])
+        y = window.height+int(menuIc[i].split('|')[1])+scrollY
+        sizeX=46
+        sizeY=46
+        hover = ((mouseX <= x + sizeX/2 and mouseX >= x - sizeX/2) and (mouseY <= y + sizeY/2 and mouseY >= y - sizeY/2))
+        clicked = (hover and mouseClick)
+        winButton(menuIcons[menuIc[i].split('|')[3]],
+                  "",
+                  x,
+                  y,
+                  sizeX,
+                  sizeY,
+                  hover=hover,
+                  clicked=(hover and mouseClick),
+                  value=menuIc[i].split('|')[2])
+
+    #MOVIE ICONS DRAWING
     xLoop = 0
     yLoop = 0
     for item in imageList.keys():
-        winButton(imageList[item], "", window.width/5*(xLoop+1), scrollY+window.height-200 - (230*yLoop), sizeX=window.width/6)
+        x = window.width/5*(xLoop+1)
+        y = scrollY+window.height-200 - (230*yLoop)
+        sizeX = window.width/6
+        sizeY = sizeX*1.47
+        hover = ((mouseX <= x + sizeX/2 and mouseX >= x - sizeX/2) and (mouseY <= y + sizeY/2 and mouseY >= y - sizeY/2))
+        clicked = (hover and mouseClick)
+        winButton(imageList[item],
+                  "",
+                  x,
+                  y,
+                  sizeX,
+                  hover=hover,
+                  clicked=(hover and mouseClick),
+                  value='vlc', mName=item)
+
         xLoop += 1
         if(xLoop > 3):
             xLoop = 0
             yLoop += 1
 
-    #drawImage(imageList[0], window.width/2,window.height/2)
-
+    
 _files = findFiles(path, ["mkv","avi","mp4"], False)
 
 files = _files.split('\n')
@@ -280,7 +383,13 @@ nFiles = [x.split('/').pop() for x in files]
 nFiles.remove(nFiles[0])
 
 for item in tqdm.tqdm(range(len(nFiles))):
-    webScrape(nFiles[item])
+    try:
+        webScrape(nFiles[item])
+    except IndexError:
+        print("NAME ERROR: {} -->> SKIPPED".format(nFiles[item]))
+    #except:
+    #    print("UNKNOWN ERROR: {} -->> SKIPPED".format(nFiles[item]))
+
 
 loadImages()
 
