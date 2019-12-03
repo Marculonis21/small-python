@@ -5,6 +5,7 @@ import sys
 import tqdm
 import time
 
+import urllib
 import urllib.request as req
 from bs4 import BeautifulSoup as BS
 
@@ -24,16 +25,13 @@ mouseClick = False
 mouseX = -1
 mouseY = -1
 
+programPath = "/home/marculonis/Desktop/main-python/movieProj/"
 path = "/media/marculonis/""My Passport""/""Filmy"""
-#path = "./testData"
-if(len(sys.argv) > 1):
-    path = sys.argv[1]
 
-dataFiles = os.listdir("movieData/")
+dataFiles = os.listdir(programPath+"movieData/")
 fileNames = [x.rsplit('_',1)[0] for x in dataFiles]
 imageList = {}
 menuIcons = {}
-
 
 
 def webScrape(actName):
@@ -84,7 +82,7 @@ def webScrape(actName):
     _score = soup.find(class_='ratingValue')
     score = _score.find("span").contents[0]
 
-    req.urlretrieve(img, "movieData/"+actName+"@pic_"+sName+"_"+score)
+    req.urlretrieve(img, programPath+"movieData/"+actName+"@pic_"+sName+"_"+score)
 
 def findFiles(_dir, _ext, expand = True):
     found = ""
@@ -104,10 +102,10 @@ def findFiles(_dir, _ext, expand = True):
 def loadImages():
     global imageList
 
-    imagePaths = os.listdir("movieData/")
+    imagePaths = os.listdir(programPath+"movieData/")
 
     for item in imagePaths:
-        img = pyglet.image.load("movieData/"+item)
+        img = pyglet.image.load(programPath+"movieData/"+item)
         tex = img.get_texture()
         actW = tex.width 
         actH = tex.height
@@ -120,7 +118,7 @@ def loadImages():
 
 
     global menuIcons
-    img = pyglet.image.load("projectData/abcIco.png")
+    img = pyglet.image.load(programPath+"projectData/abcIco.png")
     tex = img.get_texture()
     actW = 50 
     actH = 50 
@@ -128,7 +126,7 @@ def loadImages():
     tex.height = actH
     menuIcons["abcIco.png"] = tex
     
-    img = pyglet.image.load("projectData/scoreIco.png")
+    img = pyglet.image.load(programPath+"projectData/scoreIco.png")
     tex = img.get_texture()
     actW = 46
     actH = 46 
@@ -145,7 +143,6 @@ def sortImages(ABCSort = True, pCount=1):
     else:
         #SCORE SORT
         imageList = dict(sorted(imageList.items(), key = lambda x: x[0].split('_')[-1:], reverse=((pCount+1)%2==0)))
-
 
 def drawImage(image, x, y, c):
     xx = x - image.width/2
@@ -256,12 +253,12 @@ def winButton(img, text, x, y, sizeX=0, sizeY=0, hover=False, clicked=False, val
             sortImages(False,sortCount)
 
         elif(value=='vlc'):
-            print(mName)
+            #print(mName)
             print('vlc -fd "{}/{}"'.format(path,mName.split('@')[0]))
-
+            
             #CVLC = vlc without interface
-            os.system('vlc -fd "{}/{}"'.format(path,mName.split('@')[0]))
-
+            #X VLC is better
+            os.system('/snap/bin/vlc -fd "{}/{}"'.format(path,mName.split('@')[0]))
 
     if(text != ""):
         if(hover):
@@ -374,24 +371,34 @@ def on_draw():
             xLoop = 0
             yLoop += 1
 
-    
-_files = findFiles(path, ["mkv","avi","mp4"], False)
+
+#Look through PATH and get all the movies with ending
+try:    
+    _files = findFiles(path, ["mkv","avi","mp4"], False)
+except FileNotFoundError:
+    print("PATH ERROR: {} -- possibly not found".format(path))
+    quit()
 
 files = _files.split('\n')
 files.sort()
 nFiles = [x.split('/').pop() for x in files]
 nFiles.remove(nFiles[0])
 
+#Scrape web with for pictures
 for item in tqdm.tqdm(range(len(nFiles))):
     try:
         webScrape(nFiles[item])
     except IndexError:
         print("NAME ERROR: {} -->> SKIPPED".format(nFiles[item]))
-    #except:
-    #    print("UNKNOWN ERROR: {} -->> SKIPPED".format(nFiles[item]))
+    except urllib.error.URLError:
+        print("NET ERROR: possibly networking issue\n{} -->> SKIPPED".format(nFiles[item]))
+    except:
+        print("UNKNOWN ERROR: {} -->> SKIPPED".format(nFiles[item]))
 
-
+#Load all images as textures before start
 loadImages()
 
+#START pyglet app and timer
 pyglet.clock.schedule_interval(tick, 1/60)
+
 pyglet.app.run()
