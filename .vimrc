@@ -33,9 +33,9 @@ let mapleader = ","
 " Bind nohl
 " Removes highlight of your last search
 " ``<C>`` stands for ``CTRL`` and therefore ``<C-n>`` stands for ``CTRL+n``
-"" noremap <C-n> :nohl<CR>
-"" vnoremap <C-n> :nohl<CR>
-"" inoremap <C-n> :nohl<CR>
+noremap <C-n> :nohl<CR>
+vnoremap <C-n> :nohl<CR>
+inoremap <C-n> :nohl<CR>
 
 
 " Quicksave command
@@ -63,7 +63,7 @@ map <Leader>m <esc>:tabnext<CR>
 
 
 " map sort function to a key
-"" vnoremap <Leader>s :sort<CR>
+vnoremap <Leader>s :sort<CR>
 
 
 " easier moving of code blocks
@@ -75,8 +75,8 @@ vnoremap > >gv  " better indentation
 
 " Show whitespace
 " MUST be inserted adfjkEFORE the colorscheme command
-"" autocmd ColorScheme * highlight ExtraWhitespace ctermbg=red guibg=red
-"" au InsertLeave * match ExtraWhitespace /\s\+$/
+" autocmd ColorScheme * highlight ExtraWhitespace ctermbg=red guibg=red
+" au InsertLeave * match ExtraWhitespace /\s\+$/
  
 
 " Color scheme
@@ -103,8 +103,8 @@ highlight ColorColumn ctermbg=233
 
 
 " easier formatting of paragraphs
-"" vmap Q gq
-"" nmap Q gqap
+vmap Q gq
+nmap Q gqap
 
 
 " Useful settings
@@ -151,6 +151,23 @@ autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 set ff=unix 
 
 
+function! HandleURL()
+  let s:uri = matchstr(getline("."), '[a-z]*:\/\/[^ >,;]*')
+  echo s:uri
+  if s:uri != ""
+    silent exec "gnome-open '".s:uri."'"
+  else
+    echo "No URI found in line."
+  endif
+endfunction
+map <leader>u :call HandleURL()<cr>
+
+"Emmet-vim
+"git clone https://github.com/mattn/emmet-vim.git ~/.vim/bundle/emmet-vim 
+let g:user_emmet_install_global = 0
+let g:user_emmet_leader_key=','
+autocmd FileType html,php,css EmmetInstall
+
 " ============================================================================
 " Python IDE Setup
 " ============================================================================
@@ -190,8 +207,12 @@ set wildignore+=*/coverage/*
 " cd ~/.vim/bundle
 " git clone git://github.com/davidhalter/jedi-vim.git
 let g:jedi#usages_command = "<leader>z"
+let g:jedi#completions_command = "<C-Space>"
+let g:jedi#documentation_command = "K"
 let g:jedi#popup_on_dot = 0
 let g:jedi#popup_select_first = 0
+let g:jedi#use_splits_not_buffers = "left"
+
 map <Leader>b Oimport ipdb; ipdb.set_trace() # BREAKPOINT<C-c>
 
 " Better navigating through omnicomplete option list
