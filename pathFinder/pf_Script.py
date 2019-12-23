@@ -12,11 +12,13 @@ xPress = -1
 yPress = -1
 
 MODE = 0 
-MODELIST={0:"wall",1:"start",2:"end",5:"process"}
+MODELIST={0:"wall",1:"start",2:"end",4:"show",5:"process"}
 
 wallList = []
 startPos = []
 endPos = []
+
+foundPath = ""
 
 def drawLine(sX,sY,eX,eY):
     glBegin(GL_LINES)
@@ -80,19 +82,37 @@ def getAroundPoints(x_orig, y_orig, end_x, end_y, maxW):
 
     return aroundPoint
 
-def process():
-    global winWidth, pieceSize, startPos, endPos, wallList
-    num = int(winWidth/pieceSize)
-    fullMap = [[0 for x in range(num)] for y in range(num)]
+def pathFinding():
+    global winWidth, pieceSize, startPos, endPos
+    width = int(winWidth/pieceSize)
 
-    arPoints = getAroundPoints(startPos[0], startPos[1], endPos[0], endPos[1], num)
-    for p in arPoints:
+    path = ""
+    path = findBest(startPos[0], startPos[1], endPos[0], endPos[1], width, 0)
+    print(path)
+
+    return path
+
+def findBest(sX, sY, eX, eY, width, iterator):
+    global wallList
+    allS = ""
+
+    iterator += 1
+
+    aroundPoints = getAroundPoints(sX, sY, eX, eY, width)
+    for p in aroundPoints:
         for w in wallList:
             if(p[0] == w[0] and p[1] == w[1]):
-                p[2] = -1
+                p[2] = 999 
 
-    print(arPoints)
-    quit()
+    final = sorted(aroundPoints, key=lambda x: x[2])[0]
+    final.append(iterator)
+    print(final)
+
+    if(final[2] != 0):
+        allS+=str(findBest(final[0],final[1], eX, eY, width, iterator))
+
+    return str(allS)+"|"+str(final)
+
 
 win = P.window.Window(winWidth,winWidth,caption="PathFinder")
 glClearColor(0.4,0.4,0.4, 1)
@@ -126,9 +146,19 @@ def on_draw():
 
     showMode(15,win.height-15,10)
 
-    if(MODE == 5):
-        process()
 
+    global foundPath
+    if(MODE == 5):
+        foundPath = pathFinding()
+        MODE = 4
+
+    if(MODE == 4):
+        x = foundPath.split('|')
+        for i in reversed(range(2,len(x))):
+            s1 = x[i].split('[')
+            s2 = s1[1].split(',')
+
+            drawSquare(int(s2[0])*pieceSize,int(s2[1])*pieceSize, pieceSize, [0.1,0.1,1])
 
 @win.event
 def on_mouse_drag(x,y,dx,dy,c,d):
