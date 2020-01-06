@@ -186,5 +186,5 @@ def on_key_press(s,mod):
         MODE = 5
 
 
-P.clock.schedule_interval(tick, 1/60)
+P.clock.schedule_interval(tick, 1/120)
 P.app.run()
