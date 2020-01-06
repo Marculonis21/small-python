@@ -92,6 +92,8 @@ def grainAdding():
 
                 GRAINLIST.append(_grain)
 
+    update_grain_map()
+
 def get_grain_color(state):
     scolor = state.split('|')[1]
     cColor = scolor.split(',')
@@ -99,26 +101,53 @@ def get_grain_color(state):
 
     return modeColor
 
-def get_grain_map(grainL):
+def update_grain_map():
     """ PROCESS GRAINMAP """
+    global GRAINMAP,GRAINLIST
+
     MAXW = int(WIN_WIDTH/BLOCK_SIZE)
 
     GRAINMAP = [[0 for x in range(MAXW)] for y in range(MAXW)]
 
-    for grain in grainL:
+    for grain in GRAINLIST:
         try:
             GRAINMAP[grain[0]][grain[1]] = grain
+
         except:
             pass
 
-    return GRAINMAP
+def check_surrounding(grain):
+    """ CHECKS SURROUNDING PIXELS OF GRAIN """
 
-def check_static(grainL, GRAINMAP):
+    aroundFree = False
+    if (x-1 < 0 or y-1 < 0):
+        return True
+
+    if(GRAINMAP[x-1][y-1] == 0): aroundFree = True
+    if(GRAINMAP[x][y-1] == 0): aroundFree = True
+    if(GRAINMAP[x+1][y-1] == 0): aroundFree = True
+    if(GRAINMAP[x-1][y] == 0): aroundFree = True
+    if(GRAINMAP[x+1][y] == 0): aroundFree = True
+    if(GRAINMAP[x-1][y+1] == 0): aroundFree = True
+    if(GRAINMAP[x][y+1] == 0): aroundFree = True
+    if(GRAINMAP[x+1][y+1] == 0): aroundFree = True
+
+    return aroundFree
+
+def check_static():
     """ CHANGES GRAINS TO STATIC OBJECTS """
+    global GRAINLIST
     sUpdate = False
 
-    for grain in grainL:
+    for grain in GRAINLIST:
         try:
+            #foundAround = check_surrounding(grain)
+            #print(foundAround)
+            #if(foundAround):
+            #    grain[3] = False
+            #else:
+            #    grain[3] = True
+
             #grain in GRAINMAP[x][y]
             x = grain[0]
             y = grain[1]
@@ -152,14 +181,23 @@ def check_static(grainL, GRAINMAP):
         except:
             pass
 
+def move_grain(grain,newX,newY):
+    """ GRAIN MOVING """
+    global GRAINMAP
+
+    oldX = grain[0]
+    oldY = grain[1]
+    GRAINMAP[oldX][oldY] = 0
+
+    grain[0] = newX
+    grain[1] = newY
+
 def sim(grainL):
     """ GRAIN SIM """
     global GRAINMAP
 
     MAXW = int(WIN_WIDTH/BLOCK_SIZE)
 
-    GRAINMAP = get_grain_map(grainL)
-    
     for grain in grainL:
         x,y,STATE,STATIC = grain
         
@@ -168,24 +206,29 @@ def sim(grainL):
                 try:
                     if(y > 0):
                         if(GRAINMAP[x][y-1] == 0): #SAND SIM
-                            grain[1] -= 1 
+                            move_grain(grain, x, y-1)
+                            
                         elif(GRAINMAP[x-1][y-1] == 0 and x > 0):
-                            grain[0] -= 1
-                            grain[1] -= 1
+                            move_grain(grain, x-1,y-1)
+
                         elif(GRAINMAP[x+1][y-1] == 0 and x < MAXW):
-                            grain[0] += 1
-                            grain[1] -= 1
+                            move_grain(grain, x+1,y-1)
                 except:
                     pass
 
             elif(STATE == 2): #STATE LIQUID
                 pass
 
-    GRAINMAP = get_grain_map(grainL)
-    check_static(grainL,GRAINMAP)
+    update_grain_map()
+    #check_static()
+    ### Mohl bych zkusit sledovat jak dlouho je pixel na jednom místě při každém update grain map
+    ### a při každém pohybu by se to nulovalo. Jakmile by přesáhl stoptreshold, tak by byl static.
+    ### Pak je groupnout do linií asi
+
+    ### mohl bych se vyhnout updatu grain mapy, kdybych uchovával kam se co má pohnout z move grain
+    ### a pak bych to udělal místo celého přepisu mapy
 
 ### mouse stuff
-
 xPress = -1
 yPress = -1
 
@@ -195,32 +238,30 @@ yMouse = -1
 mouseWheel = 5 
 
 ### constants
-
 WIN_WIDTH = 800
 BLOCK_SIZE = 10
 DRAW_MAP = False
 
+###SIM USED STUFF
 # 0 = static, 1 = solid, 2 = liquid
 GRAIN_TYPE_SELECTED = 1
 
+# list of all states
 STATELIST = {1:"sand|0.8,0.8,0|", 
              2:"water|0,0,0.8|",
              3:"gas|0.1,0.8,0.1|"}
 
+# list of grain
 ### GRAIN - POSX,POSY, STATE[SOLID - 1, LIQUID - 2], STATIC/AWAKE[NO - False,YES - True];
 GRAINLIST = []
 
+# map of grain - for physics and colisions
 GRAINMAP = []
 
 win = P.window.Window(WIN_WIDTH,WIN_WIDTH,caption="Grain sim")
 win.set_mouse_visible(False)
 fps_display = P.window.FPSDisplay(window=win)
 glClearColor(0.25,0.25,0.25, 1)
-
-@win.event
-def tick(t):
-    """ TICK """
-    pass
 
 @win.event
 def on_draw():
@@ -232,11 +273,8 @@ def on_draw():
         checkerBoard(BLOCK_SIZE)
 
     global xPress,yPress,xMouse,yMouse
-    global GRAINLIST, STATIC_GRAINLIST
-
     if(xPress != -1): # ADD TO GRAINLIST
         grainAdding()
-
         xMouse = yMouse = -1
 
     elif(xMouse != -1): # CURSOR
@@ -254,7 +292,6 @@ def on_draw():
         color = get_grain_color(STATELIST[grain[2]])
         drawSquare(grain[0]*BLOCK_SIZE,grain[1]*BLOCK_SIZE,BLOCK_SIZE, color)
 
-
     sim(GRAINLIST)
 
     drawText("Particles: {}".format(len(GRAINLIST)),80,win.height-15,15)
@@ -262,6 +299,30 @@ def on_draw():
     drawMode(win.width-200,win.height-80,50)
     
     fps_display.draw()
+
+@win.event
+def on_key_press(s,mod):
+    """ KEYBOARD INPUTS """
+    if(s == P.window.key.F1):
+        global DRAW_MAP
+        if(DRAW_MAP):
+            DRAW_MAP = False
+        else:
+            DRAW_MAP = True
+    if(s == P.window.key.N):
+        global GRAINLIST, GRAINMAP
+        GRAINLIST = []
+        GRAINMAP = []
+
+    global GRAIN_TYPE_SELECTED
+    if(s == P.window.key.NUM_0):
+        GRAIN_TYPE_SELECTED = 0
+    if(s == P.window.key.NUM_1):
+        GRAIN_TYPE_SELECTED = 1
+    if(s == P.window.key.NUM_2):
+        GRAIN_TYPE_SELECTED = 2
+    if(s == P.window.key.NUM_3):
+        GRAIN_TYPE_SELECTED = 3
 
 @win.event
 def on_mouse_drag(x, y, dx, dy, c, d):
@@ -304,32 +365,12 @@ def on_mouse_release(x, y, button, modifiers):
     xPress = yPress = -1
 
 @win.event
-def on_key_press(s,mod):
-    """ KEYBOARD INPUTS """
-    if(s == P.window.key.F1):
-        global DRAW_MAP
-        if(DRAW_MAP):
-            DRAW_MAP = False
-        else:
-            DRAW_MAP = True
-    if(s == P.window.key.N):
-        global GRAINLIST, GRAINMAP
-        GRAINLIST = []
-        GRAINMAP = []
+def tick(t):
+    """ TICK """
+    pass
 
-    global GRAIN_TYPE_SELECTED
-    if(s == P.window.key.NUM_0):
-        GRAIN_TYPE_SELECTED = 0
-    if(s == P.window.key.NUM_1):
-        GRAIN_TYPE_SELECTED = 1
-    if(s == P.window.key.NUM_2):
-        GRAIN_TYPE_SELECTED = 2
-    if(s == P.window.key.NUM_3):
-        GRAIN_TYPE_SELECTED = 3
+if __name__ == "__main__":
+    update_grain_map()
 
-    """ MOUSE INPUT2 """ 
-    global xPress, yPress
-    xPress = yPress = -1
-
-P.clock.schedule_interval(tick, 1/60)
-P.app.run()
+    P.clock.schedule_interval(tick, 1/60)
+    P.app.run()
