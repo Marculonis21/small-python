@@ -5,6 +5,9 @@ import pyglet as P
 
 import math
 
+import time
+from multiprocessing import Pool
+import multiprocessing
 
 def drawLine(sX,sY,eX,eY):
     glBegin(GL_LINES)
@@ -49,7 +52,6 @@ def drawMode(sX,sY,size,padX=-1):
 
         loop += 1
 
-
 def checkerBoard(size):
     for i in range(int(WIN_WIDTH/size)):
         drawLine(i*size,0,i*size,win.height)
@@ -71,8 +73,6 @@ def cursorDrawing():
 def grainAdding():
     global xMouse,yMouse,mouseWheel,BLOCK_SIZE
 
-    usedList = []
-    xxx = 0
     for _wIter in reversed(range(0,mouseWheel)):
         radius = (_wIter * BLOCK_SIZE)
         angle = 2*math.pi/36
@@ -83,16 +83,13 @@ def grainAdding():
             __x = math.floor(_x/BLOCK_SIZE)
             __y = math.floor(_y/BLOCK_SIZE)
 
-            if([__x,__y] in usedList or GRAINMAP[__x][__y] != 0):
+            if(GRAINMAP[__x][__y] != 0):
                 pass
             else:
-                xxx += 1
-                _grain = [__x,__y,GRAIN_TYPE_SELECTED,False]
-                usedList.append([__x,__y])
+                _grain = [__x,__y,GRAIN_TYPE_SELECTED,False,0]
 
+                GRAINMAP[__x][__y] = _grain
                 GRAINLIST.append(_grain)
-
-    update_grain_map()
 
 def get_grain_color(state):
     scolor = state.split('|')[1]
@@ -116,39 +113,14 @@ def update_grain_map():
         except:
             pass
 
-def check_surrounding(grain):
-    """ CHECKS SURROUNDING PIXELS OF GRAIN """
-
-    aroundFree = False
-    if (x-1 < 0 or y-1 < 0):
-        return True
-
-    if(GRAINMAP[x-1][y-1] == 0): aroundFree = True
-    if(GRAINMAP[x][y-1] == 0): aroundFree = True
-    if(GRAINMAP[x+1][y-1] == 0): aroundFree = True
-    if(GRAINMAP[x-1][y] == 0): aroundFree = True
-    if(GRAINMAP[x+1][y] == 0): aroundFree = True
-    if(GRAINMAP[x-1][y+1] == 0): aroundFree = True
-    if(GRAINMAP[x][y+1] == 0): aroundFree = True
-    if(GRAINMAP[x+1][y+1] == 0): aroundFree = True
-
-    return aroundFree
-
-def check_static():
+def check_static(testList):
     """ CHANGES GRAINS TO STATIC OBJECTS """
     global GRAINLIST
-    sUpdate = False
+    global static_GRAINLIST
+    global GRAINMAP
 
-    for grain in GRAINLIST:
+    for grain in testList:
         try:
-            #foundAround = check_surrounding(grain)
-            #print(foundAround)
-            #if(foundAround):
-            #    grain[3] = False
-            #else:
-            #    grain[3] = True
-
-            #grain in GRAINMAP[x][y]
             x = grain[0]
             y = grain[1]
 
@@ -173,16 +145,26 @@ def check_static():
             if(GRAINMAP[x+1][y+1] == 0):
                 found = True
 
-            if not (found): # STATIC
-                grain[3] = True
-            else:
-                grain[3] = False
+            #if not (found): # STATIC
+            #    grain[3] = True
+            #else:
+            #    grain[3] = False
+
+            if not (found):
+                nGrain = grain.copy()
+                nGrain[3] = True
+                GRAINMAP[x][y] = nGrain
+
+                static_GRAINLIST.append(nGrain)
+                GRAINLIST.remove(grain)
+                testList.remove(grain)
 
         except:
             pass
 
+
 def move_grain(grain,newX,newY):
-    """ GRAIN MOVING """
+    """ GRAIN fMOVING """
     global GRAINMAP
 
     oldX = grain[0]
@@ -192,41 +174,52 @@ def move_grain(grain,newX,newY):
     grain[0] = newX
     grain[1] = newY
 
-def sim(grainL):
+    return [[grain, grain[0], grain[1]]]
+
+def sim():
     """ GRAIN SIM """
-    global GRAINMAP
+    global GRAINMAP, GRAINLIST
 
     MAXW = int(WIN_WIDTH/BLOCK_SIZE)
 
-    for grain in grainL:
-        x,y,STATE,STATIC = grain
+    staticTestList = []
+    moveHistory = []
+    for grain in GRAINLIST:
+        x,y,STATE,STATIC,r = grain
         
         if not (STATIC):
             if(STATE): #STATE SOLID
                 try:
                     if(y > 0):
                         if(GRAINMAP[x][y-1] == 0): #SAND SIM
-                            move_grain(grain, x, y-1)
-                            
+                            moveHistory += move_grain(grain, x, y-1)
+                            grain[4] = 0
                         elif(GRAINMAP[x-1][y-1] == 0 and x > 0):
-                            move_grain(grain, x-1,y-1)
-
+                            moveHistory += move_grain(grain, x-1,y-1)
+                            grain[4] = 0
                         elif(GRAINMAP[x+1][y-1] == 0 and x < MAXW):
-                            move_grain(grain, x+1,y-1)
+                            moveHistory += move_grain(grain, x+1,y-1)
+                            grain[4] = 0
+                        else:
+                            grain[4] += 1
+                            if(grain[4] >= 50):
+                                staticTestList += [grain]
                 except:
                     pass
 
             elif(STATE == 2): #STATE LIQUID
                 pass
 
-    update_grain_map()
-    #check_static()
-    ### Mohl bych zkusit sledovat jak dlouho je pixel na jednom místě při každém update grain map
-    ### a při každém pohybu by se to nulovalo. Jakmile by přesáhl stoptreshold, tak by byl static.
-    ### Pak je groupnout do linií asi
+    for i in moveHistory:
+        GRAINMAP[i[1]][i[2]] = i[0]
 
-    ### mohl bych se vyhnout updatu grain mapy, kdybych uchovával kam se co má pohnout z move grain
-    ### a pak bych to udělal místo celého přepisu mapy
+    if(len(staticTestList) > 0):
+        check_static(staticTestList)
+
+    #update_grain_map()
+
+    #check_static()
+
 
 ### mouse stuff
 xPress = -1
@@ -252,13 +245,16 @@ STATELIST = {1:"sand|0.8,0.8,0|",
              3:"gas|0.1,0.8,0.1|"}
 
 # list of grain
-### GRAIN - POSX,POSY, STATE[SOLID - 1, LIQUID - 2], STATIC/AWAKE[NO - False,YES - True];
+### GRAIN - POSX,POSY, STATE[SOLID - 1, LIQUID - 2], STATIC/AWAKE[NO - False,YES - True], staticLoop;
 GRAINLIST = []
+
+static_GRAINLIST = []
+
 
 # map of grain - for physics and colisions
 GRAINMAP = []
 
-win = P.window.Window(WIN_WIDTH,WIN_WIDTH,caption="Grain sim")
+win = P.window.Window(WIN_WIDTH,WIN_WIDTH,vsync=0,caption="Grain sim")
 win.set_mouse_visible(False)
 fps_display = P.window.FPSDisplay(window=win)
 glClearColor(0.25,0.25,0.25, 1)
@@ -288,17 +284,91 @@ def on_draw():
             drawSquare(grain[0]*BLOCK_SIZE,grain[1]*BLOCK_SIZE,BLOCK_SIZE, [0,0.8,0])
     """
 
-    for grain in GRAINLIST:
-        color = get_grain_color(STATELIST[grain[2]])
-        drawSquare(grain[0]*BLOCK_SIZE,grain[1]*BLOCK_SIZE,BLOCK_SIZE, color)
+    sTime = time.time()
 
-    sim(GRAINLIST)
+    #grainLDraw()
+    #sgrainLDraw()
 
-    drawText("Particles: {}".format(len(GRAINLIST)),80,win.height-15,15)
+    """
+    processes = []
+    parts = 4
+    pWidth = len(GRAINMAP)/parts
+    
+    x = -1
+    processList = []
+    for i in range(int(parts**2)):
+        y = math.floor(i/parts)
+        x += 1
+        if(x == parts):
+            x = 0
+
+        processList += [[x,y,parts,GRAINMAP]]
+
+    p = Pool(processes=1)
+    data = p.map(testDrawScene, processList)
+    p.close()
+    #print(data)
+
+    x = -1
+    for i in range(int(parts**2)):
+        y = math.floor(i/parts)
+        x += 1
+        if(x == parts):
+            x = 0
+        if(data[i]):
+            for _y in range(int(pWidth*y), int(pWidth*y + pWidth)):
+                for _x in range(int(pWidth*x),int(pWidth*x + pWidth)):
+                    if(GRAINMAP[_x][_y] != 0):
+                        color = get_grain_color(STATELIST[GRAINMAP[_x][_y][2]])
+                        drawSquare(_x*BLOCK_SIZE,_y*BLOCK_SIZE,BLOCK_SIZE, color)
+
+    """
+
+    for y in range(len(GRAINMAP)):
+        for x in range(len(GRAINMAP)):
+            if(GRAINMAP[x][y] != 0):
+                color = get_grain_color(STATELIST[GRAINMAP[x][y][2]])
+                drawSquare(x*BLOCK_SIZE,y*BLOCK_SIZE,BLOCK_SIZE, color)
+
+    print("looking through took {} seconds".format(time.time() - sTime))
+    sim()
+
+    drawText("Particles: {}/{}".format(len(GRAINLIST),len(static_GRAINLIST)),80,win.height-15,15)
 
     drawMode(win.width-200,win.height-80,50)
     
     fps_display.draw()
+
+
+def grainLDraw():
+    for grain in GRAINLIST:
+        color = get_grain_color(STATELIST[grain[2]])
+        drawSquare(grain[0]*BLOCK_SIZE,grain[1]*BLOCK_SIZE,BLOCK_SIZE, color)
+
+def sgrainLDraw():
+    for grain in static_GRAINLIST:
+        color = get_grain_color(STATELIST[grain[2]])
+        drawSquare(grain[0]*BLOCK_SIZE,grain[1]*BLOCK_SIZE,BLOCK_SIZE, color)
+
+def testDrawScene(values):
+    """ MULTIPROCESSING TEST """
+    x = values[0]
+    y = values[1]
+    parts = values[2]
+    GRAINMAP = values[3]
+
+    pWidth = len(GRAINMAP)/parts
+
+    for _y in range(int(pWidth*y), int(pWidth*y + pWidth)):
+        for _x in range(int(pWidth*x),int(pWidth*x + pWidth)):
+            if(GRAINMAP[_x][_y] != 0):
+                #print("YES process end, working at xs: {}; ys: {}".format(pWidth*x,pWidth*y))
+                #workArea[index] = [_x,_y,1]
+                return True
+
+    #print("NO process end, working at xs: {}; ys: {}".format(pWidth*x,pWidth*y))
+    #workArea[index] = [_x,_y,0]
+    return False
 
 @win.event
 def on_key_press(s,mod):
@@ -310,9 +380,10 @@ def on_key_press(s,mod):
         else:
             DRAW_MAP = True
     if(s == P.window.key.N):
-        global GRAINLIST, GRAINMAP
+        global GRAINLIST, static_GRAINLIST
         GRAINLIST = []
-        GRAINMAP = []
+        static_GRAINLIST = []
+        update_grain_map()
 
     global GRAIN_TYPE_SELECTED
     if(s == P.window.key.NUM_0):
@@ -372,5 +443,5 @@ def tick(t):
 if __name__ == "__main__":
     update_grain_map()
 
-    P.clock.schedule_interval(tick, 1/60)
+    P.clock.schedule_interval(tick, 1/100)
     P.app.run()
