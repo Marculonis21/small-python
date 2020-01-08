@@ -254,7 +254,7 @@ static_GRAINLIST = []
 # map of grain - for physics and colisions
 GRAINMAP = []
 
-win = P.window.Window(WIN_WIDTH,WIN_WIDTH,vsync=0,caption="Grain sim")
+win = P.window.Window(WIN_WIDTH,WIN_WIDTH,caption="Grain sim")
 win.set_mouse_visible(False)
 fps_display = P.window.FPSDisplay(window=win)
 glClearColor(0.25,0.25,0.25, 1)
@@ -443,5 +443,5 @@ def tick(t):
 if __name__ == "__main__":
     update_grain_map()
 
-    P.clock.schedule_interval(tick, 1/100)
+    P.clock.schedule_interval(tick, 1/120)
     P.app.run()
