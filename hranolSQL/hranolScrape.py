@@ -63,3 +63,16 @@ for i in reversed(rmlist):
 #for p in people:
 #    print(p)
 #print(len(people))
+
+out = open("out.csv", "w")
+triko = 0
+for p in people:
+    out.write("{},{},{},\n".format(p['name'], p['triko'], p['velikost']))
+    if(p['triko'] == 'Ano'):
+        triko+=1
+
+print("Počet trik: {}".format(triko))
+print("Done")
+input()
+out.close()
+f.close()
