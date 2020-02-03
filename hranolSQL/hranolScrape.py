@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-f = open("wp_rm_submission_fields.csv", "r")
+f = open("wp_rm_submission_fields.csv", "r", encoding="utf-8")
 
 l = f.readlines()
 
