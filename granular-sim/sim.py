@@ -188,7 +188,7 @@ def sim():
         x,y,STATE,STATIC,r = grain
         
         if not (STATIC):
-            if(STATE): #STATE SOLID
+            if(STATE == 1): #STATE SOLID
                 try:
                     if(y > 0):
                         if(GRAINMAP[x][y-1] == 0): #SAND SIM
@@ -208,7 +208,43 @@ def sim():
                     pass
 
             elif(STATE == 2): #STATE LIQUID
+                try:
+                    if(y > 0):
+                        if(GRAINMAP[x][y-1] == 0): #SAND SIM
+                            moveHistory += move_grain(grain, x, y-1)
+                            grain[4] = 0
+                        elif(GRAINMAP[x-1][y-1] == 0 and x > 0):
+                            moveHistory += move_grain(grain, x-1,y-1)
+                            grain[4] = 0
+                        elif(GRAINMAP[x+1][y-1] == 0 and x < MAXW):
+                            moveHistory += move_grain(grain, x+1,y-1)
+                            grain[4] = 0
+                        elif(GRAINMAP[x+1][y] == 0 and x < MAXW):
+                            moveHistory += move_grain(grain, x+1,y)
+                            grain[4] = 0
+                        elif(GRAINMAP[x-1][y] == 0 and x > 0):
+                            moveHistory += move_grain(grain, x-1,y)
+                            grain[4] = 0
+                        else:
+                            grain[4] += 1
+                            if(grain[4] >= 50):
+                                staticTestList += [grain]
+                    else:
+                        if(GRAINMAP[x+1][y] == 0 and x < MAXW):
+                            moveHistory += move_grain(grain, x+1,y)
+                            grain[4] = 0
+                        elif(GRAINMAP[x-1][y] == 0 and x > 0):
+                            moveHistory += move_grain(grain, x-1,y)
+                            grain[4] = 0
+                        else:
+                            grain[4] += 1
+                            if(grain[4] >= 50):
+                                staticTestList += [grain]
+                except:
+                    pass
+            elif(STATE == 3):
                 pass
+
 
     for i in moveHistory:
         GRAINMAP[i[1]][i[2]] = i[0]
@@ -236,7 +272,7 @@ BLOCK_SIZE = 10
 DRAW_MAP = False
 
 ###SIM USED STUFF
-# 0 = static, 1 = solid, 2 = liquid
+# 0 = eraser, 1 = solid, 2 = liquid
 GRAIN_TYPE_SELECTED = 1
 
 # list of all states
@@ -250,8 +286,7 @@ GRAINLIST = []
 
 static_GRAINLIST = []
 
-
-# map of grain - for physics and colisions
+# map of grain - for physics and colisions ++ drawing
 GRAINMAP = []
 
 win = P.window.Window(WIN_WIDTH,WIN_WIDTH,vsync=0,caption="Grain sim")
@@ -338,7 +373,6 @@ def on_draw():
     drawMode(win.width-200,win.height-80,50)
     
     fps_display.draw()
-
 
 def grainLDraw():
     for grain in GRAINLIST:
