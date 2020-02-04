@@ -30,6 +30,9 @@ for i in l:
                     if(fieldID == 27):
                         d['velikost'] = value
 
+                    if(fieldID == 52):
+                        d['wall'] = value
+
                     break
                 else:
                     try:
@@ -37,7 +40,7 @@ for i in l:
                     except:
                         pass
 
-                    d = {'id': "", 'name': "", 'mail': "", 'triko': "", 'velikost': ""}
+                    d = {'id': "", 'name': "", 'mail': "", 'wall': "", 'triko': "", 'velikost': ""}
                     d['id'] = userID
                     lastUse = userID
     except:
@@ -65,13 +68,24 @@ for i in reversed(rmlist):
 #print(len(people))
 
 out = open("out.csv", "w")
+
 triko = 0
+wall = 0
+
+out.write("Jméno Příjmení,Triko,Velikost,Stěna\n")
 for p in people:
-    out.write("{},{},{},\n".format(p['name'], p['triko'], p['velikost']))
+    if(p['id'] > 58):
+        p['triko'] = 'Ne'
+        p['velikost'] = ''
+
+    out.write("{},{},{},{}, \n".format(p['name'], p['triko'], p['velikost'], p['wall']))
     if(p['triko'] == 'Ano'):
         triko+=1
+    if(p['wall'] == 'Ano'):
+        wall+=1
 
 print("Počet trik: {}".format(triko))
+print("Počet lidí na stěnu: {}".format(wall))
 print("Done")
 input()
 out.close()
