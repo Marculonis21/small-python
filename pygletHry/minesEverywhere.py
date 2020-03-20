@@ -13,7 +13,6 @@ numY = int(window.height/pieceSize) + 1
 playField = [[0 for x in range(numX)] for y in range(numY)]
 mineCount = 30
 
-
 def startField():
     global playField
 
@@ -26,7 +25,6 @@ def startField():
                 break
 
         playField[_x][_y] = -1
-
 
 def drawLine(startX, startY, endX, endY, r=1,g=1,b=1):
     glBegin(GL_LINES)

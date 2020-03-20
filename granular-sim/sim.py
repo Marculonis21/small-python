@@ -162,7 +162,6 @@ def check_static(testList):
         except:
             pass
 
-
 def move_grain(grain,newX,newY):
     """ GRAIN fMOVING """
     global GRAINMAP
