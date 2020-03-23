@@ -48,6 +48,8 @@ def webScrape(actName):
     for i in range(len(xxx)):
         if(xxx[i] == ' '):
             xxx[i] = '+'
+        if(xxx[i] == '&'):
+            xxx[i] = 'and'
 
     _name = ''.join(xxx)
 
@@ -73,9 +75,12 @@ def webScrape(actName):
     final = fFind.find("a")["href"]
     
     page = req.urlopen("https://www.imdb.com/{}".format(final))
+    print(_name)
+    
+    print(final)
     soup = BS(page, 'html.parser')
 
-    poster = soup.find(class_='poster')
+    poster = soup.find(class_="poster")
     img = poster.find("img")["src"]
 
     ###SCORE

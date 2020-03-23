@@ -408,5 +408,10 @@ def on_key_press(s,mod):
     if(s == P.window.key.ENTER):
         MODE = 5
 
+<<<<<<< HEAD
 P.clock.schedule_interval(tick, 1/60)
+=======
+
+P.clock.schedule_interval(tick, 1/120)
+>>>>>>> 25e98168699025546c7c98e1f7ea50d89c411bb2
 P.app.run()

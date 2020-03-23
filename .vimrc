@@ -143,8 +143,9 @@ execute pathogen#infect()
 
 "
 " MY OWN SECTION
-"
-" Start nerdtree everytime "vim ." is used
+"NERDTREE
+"git clone https://github.com/preservim/nerdtree.git ~/.vim/bundle/nerdtree
+
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 
@@ -162,7 +163,7 @@ function! HandleURL()
 endfunction
 map <leader>u :call HandleURL()<cr>
 
-"Emmet-vim
+"EMMET-VIM
 "git clone https://github.com/mattn/emmet-vim.git ~/.vim/bundle/emmet-vim 
 let g:user_emmet_install_global = 0
 let g:user_emmet_leader_key=','
@@ -174,38 +175,19 @@ autocmd FileType html,php,css EmmetInstall
 
 
 " Settings for vim-powerline
-" cd ~/.vim/bundle
-" git clone git://github.com/Lokaltog/vim-powerline.git
+" git clone git://github.com/Lokaltog/vim-powerline.git ~/.vim/bundle/vim-powerline
 set laststatus=2
 
 
 " Settings for ctrlp
-" cd ~/.vim/bundle
-" git clone https://github.com/kien/ctrlp.vim.git
+" git clone https://github.com/kien/ctrlp.vim.git ~/.vim/bundle/ctrlp.vim
 let g:ctrlp_max_height = 30
 set wildignore+=*.pyc
 set wildignore+=*_build/*
 set wildignore+=*/coverage/*
 
-" Settings for python-mode
-" Note: I'm no longer using this. Leave this commented out
-" and uncomment the part about jedi-vim instead
-" cd ~/.vim/bundle
-" git clone https://github.com/klen/python-mode
-"map <Leader>g :call RopeGotoDefinition()<CR>
-"let ropevim_enable_shortcuts = 1
-"let g:pymode_rope_goto_def_newwin = "vnew"
-"let g:pymode_rope_extended_complete = 1
-"let g:pymode_breakpoint = 0
-"let g:pymode_syntax = 1
-"let g:pymode_syntax_builtin_objs = 0
-"let g:pymode_syntax_builtin_funcs = 0
-"map <Leader>b Oimport ipdb; ipdb.set_trace() # BREAKPOINT<C-c>
-"let g:pymode_python = "python3"
-
 " Settings for jedi-vim
-" cd ~/.vim/bundle
-" git clone git://github.com/davidhalter/jedi-vim.git
+" git clone git://github.com/davidhalter/jedi-vim.git ~/.vim/bundle/jedi-vim
 let g:jedi#usages_command = "<leader>z"
 let g:jedi#completions_command = "<C-Space>"
 let g:jedi#documentation_command = "K"
