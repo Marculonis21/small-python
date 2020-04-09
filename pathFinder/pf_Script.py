@@ -10,6 +10,7 @@ pieceSize = 20
 drawSpeed = 0.01
 
 mousePressed = False
+pressMode = 0
 xPress = -1
 yPress = -1
 
@@ -147,48 +148,6 @@ def drawProgress(size, openL, closeL, last):
 
     drawSquare(last[0]*size,last[1]*size,size, [0.3,0.6,0.9])
 
-"""
-def getAroundPoints(act, start, end, wallL, closeL, maxW):
-    #x,y,hcost,fcost
-    aroundPoint = [[-1+act[0],-1+act[1],999,999,999],
-                   [   act[0],-1+act[1],999,999,999],
-                   [ 1+act[0],-1+act[1],999,999,999],
-                   [-1+act[0],   act[1],999,999,999],
-                   [ 1+act[0],   act[1],999,999,999],
-                   [-1+act[0], 1+act[1],999,999,999],
-                   [   act[0], 1+act[1],999,999,999],
-                   [ 1+act[0], 1+act[1],999,999,999]]
-
-    #loop in points
-    for point in aroundPoint:
-        #boundaries
-        if(point[0]>=0 and point[1]>=0):
-            if(point[0]<maxW and point[1]<maxW):
-                #test all if not colliding with walls/closedL
-                found = False
-                for w in wallL:
-                    if(point[0] == w[0] and point[1] == w[1]):
-                        found = True
-                        break
-                for c in closeL:
-                    if(point[0] == c[0] and point[1] == c[1]):
-                        found = True
-                        break
-                
-                #if not wall -> process
-                if not(found):
-                    EdistanceX = abs(point[0]-end[0])
-                    EdistanceY = abs(point[1]-end[1])
-                    point[3] = math.sqrt(EdistanceX**2+EdistanceY**2)
-                    
-                    SdistanceX = abs(point[0]-start[0])
-                    SdistanceY = abs(point[1]-start[1])
-                    point[2] = math.sqrt(SdistanceX**2+SdistanceY**2)
-
-                    point[4] = point[2] + point[3]
-
-    return aroundPoint
-"""
 def getAroundPoints(act,end,wallL,maxW):
     aroundPoint = [[-1+act[0],-1+act[1],0,0,0,[]],
                    [   act[0],-1+act[1],0,0,0,[]],
@@ -255,7 +214,7 @@ def pathFinding(parent):
                         wantedY = c[4]
                     except:
                         FOUND = True
-                        print(PATH)
+                        #print(PATH)
 
         return 0
 
@@ -324,6 +283,7 @@ def tick(t):
 @win.event
 def on_draw():
     global drawSpeed, pieceSize, xPress, yPress, wallList,startPos,endPos, MODE, openL, closeL, lastPos, mousePressed
+    global pressMode
 
     win.clear()
     glColor3f(1,1,1)
@@ -334,12 +294,19 @@ def on_draw():
         if(xPress != -1):
             xPos = math.floor(xPress/pieceSize)
             yPos = math.floor(yPress/pieceSize)
-            if(MODE == 0):
-                wallList += [[xPos,yPos]]
-            if(MODE == 1):
-                startPos = [xPos,yPos]
-            if(MODE == 2):
-                endPos = [xPos,yPos]
+            if(pressMode == 1):
+                if(MODE == 0):
+                    wallList += [[xPos,yPos]]
+                if(MODE == 1):
+                    startPos = [xPos,yPos]
+                if(MODE == 2):
+                    endPos = [xPos,yPos]
+            if(pressMode == -1):
+                try:
+                    wallList.remove([xPos,yPos])
+                except ValueError:
+                    pass
+
             xPress = yPress = -1
 
         showMode(15,win.height-15,10)
@@ -385,15 +352,18 @@ def on_mouse_drag(x,y,dx,dy,c,d):
 
 @win.event
 def on_mouse_press(x,y ,c,d):
-    global xPress, yPress
-    if(c == 4):
-        global mousePressed
+    global xPress, yPress, pressMode
+    global mousePressed
+    if(c == 1):
         mousePressed = True
         xPress = x
         yPress = y
-
-    xPress = x
-    yPress = y
+        pressMode = 1
+    if(c == 4):
+        mousePressed = True
+        xPress = x
+        yPress = y
+        pressMode = -1
 
 @win.event
 def on_key_press(s,mod):
@@ -406,12 +376,13 @@ def on_key_press(s,mod):
         MODE = 0
 
     if(s == P.window.key.ENTER):
+        if(MODE == 4):
+            quit()
+            #END END
         MODE = 5
 
-<<<<<<< HEAD
-P.clock.schedule_interval(tick, 1/60)
-=======
 
-P.clock.schedule_interval(tick, 1/120)
->>>>>>> 25e98168699025546c7c98e1f7ea50d89c411bb2
+P.clock.schedule_interval(tick, 1/60)
+
+#P.clock.schedule_interval(tick, 1/120)
 P.app.run()
