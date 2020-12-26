@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css?family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Righteous&display=swap');
+
+* {
+    font-family: 'Righteous';
+    font-family: 'Bebas Neue';
+    color: lightgray;
+    text-decoration: none;
+    margin:0; 
+    padding:0;
+}
+
+body{
+    background-color:#222;
+}
+
+.start{
+    width: 100%;
+    padding: 10px 0px;
+    display: flex;
+    justify-content: space-between;
+
+    background-color:#373737;
+    border-bottom: 2px solid yellow;
+}
+.nadpis{
+    font-size: 60px;
+}
+.info{
+    font-size: 15px;
+
+    padding: 10px;
+    margin: auto 0 auto;
+}
+
+.topnav{
+    padding: 0 20px;
+} 
+#l{
+    float:left;
+}
+
+#r{
+    float:right;
+    align-content: right;
+}
+
+.topnav button {
+    background-color:#505050;
+
+    text-align: center;
+    vertical-align: top;
+
+    border: none;
+    border-bottom: 1px solid yellow;
+    border-left: 1px solid yellow;
+    border-right: 1px solid yellow;
+    border-radius: 0 0 15px 15px;
+
+    padding: 5px 15px;
+    margin: 0 5px;
+
+    font-size: 20px;
+    text-padding: 5px;
+    
+    transition: 500ms ease;
+}
+
+.topnav button:hover {
+    padding: 15px 15px;
+    background: #656565;
+}

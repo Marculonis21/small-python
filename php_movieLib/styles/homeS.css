@@ -1,0 +1,29 @@
+#Home{
+    position: relative; 
+
+    display:flex;
+
+    top: 50px; 
+
+    width:50%;
+    height:300px;
+    margin: 0 auto;
+
+    background-color:#373737;
+    border-radius: 10px;
+
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 80px;
+    text-decoration: none;
+    text-shadow: 5px 5px 15px rgba(0,0,0,0.8);
+}
+
+#Home .text {
+    font-size: 25px;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: none;
+}

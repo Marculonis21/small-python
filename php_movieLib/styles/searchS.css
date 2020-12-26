@@ -1,0 +1,392 @@
+#search {
+    display: flex;
+    width: 100%;
+}
+
+#search form {
+    display: flex;
+    width: 100%;
+}
+
+#userSet {
+    position: relative;
+
+    width: 250px;
+
+    /*delete with other tabs*/
+    height: 70%;
+    /*delete with other tabs*/
+
+    display: block;
+    background: #191919;
+    border-radius: 0 25px 25px 0;
+}
+
+#userSet p {
+    font-size: 30px;
+    margin: 5px 10px;
+    text-decoration: underline;
+}
+
+#userSet .tabs .tab {
+    margin: 15px 0px;
+    width: 100%;
+    text-align: center;
+}
+
+#userSet .tabs .tabH {
+    display: none;
+}
+
+#userSet .tabs input {
+    display: none;
+}
+
+#userSet .tabs .tab label{
+    display: inline-block;
+
+    padding: 5px 10px;
+
+    min-width: 0px;
+
+    background: #303030; 
+    border-radius: 25px;
+    border: none;
+
+    font-size: 20px;
+
+    transition: 200ms ease;
+}
+
+#userSet .tabs .tab label:hover {
+    background: #404040;
+    min-width: 80%;
+}
+
+#userSet .tabs .tab input[type=radio]:checked + label {
+    background: #555;
+    min-width: 80%;
+}
+
+.form {
+    position: relative;
+    display: flex;
+    width: 75%;
+    
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form .opts {
+    position:relative;
+    left: 50px;
+
+    padding-top: 25px;
+    width: 40%;
+    height: 50px;
+
+    justify-content: center;
+}
+
+.form .opts input{
+    width: 100%;
+    height: 100%;
+
+    padding-left: 10px;
+
+    border: none;
+    outline: none;
+    border-radius: 15px;
+
+    background-color:#505050;
+
+    font-size:30px;
+
+    font-family: 'Righteous';
+    transition: 300ms;
+}
+
+.form .opts label .labeltext{
+    position: absolute;
+    width: 100%;
+
+    bottom: 0px;
+    left: 10px;
+    font-size: 35px;
+    pointer-events: none;
+    transition: 300ms;
+
+    font-family: 'Righteous';
+}
+
+.form .opts label .labeltext-hide{
+    position: absolute;
+
+    width: 100%;
+    text-align: right;
+
+    bottom: 0px;
+    left: 120px;
+
+    font-size: 15px;
+    pointer-events: none;
+    transition: 350ms;
+    line-height: 30px;
+    color: crimson;
+
+    font-family: 'Righteous';
+}
+
+.form .opts input:focus + label .labeltext, .form .opts input:valid + label .labeltext{
+    transform:translateX(-250px);    
+}
+.form .opts input:focus + label .labeltext-hide, .form .opts input:valid + label .labeltext-hide{
+    opacity: 0;
+}
+
+.form .opts input:focus, .form .opts input:valid{
+    background:#656565;
+}
+
+.form .btnCont{
+    position:relative;
+
+    left: 50px;
+    padding-top: 10px;
+    width: 40%;
+    height: 80px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items:center;
+}
+
+.form .btnCont button{
+    border: none;
+    background: none;
+    outline: none;
+
+    font-size: 50px;
+    cursor: pointer;
+
+    transition: 150ms ease;
+}
+
+.form .btnCont button:hover{
+    font-size: 70px;
+}
+
+.form .btnCont .fa-check-circle:active{
+    color: green;
+}
+
+.form .btnCont .fa-times-circle:active{
+    color: red;
+}
+
+#note {
+    width: 380px;
+    height: 30px;
+    margin: auto;
+    margin-top: 30px;
+
+    text-align: center;
+
+    background: #505050;
+    border-radius: 15px;
+}
+
+#note #valid {
+    color: lime;
+    font-size: 20px;
+    line-height: 30px;
+}
+#note #info {
+    color: orange;
+    font-size: 20px;
+    line-height: 30px;
+}
+#note #error {
+    color: #FF0022;
+    font-size: 20px;
+    line-height: 30px;
+}
+
+.pages_form {
+    height: 0;
+}
+
+.count_pages {
+    position: relative;
+
+    text-align: right;
+
+    width: 70%;
+    margin: auto;
+}
+
+.count_pages span {
+    position: relative;
+    top: 20px;
+
+    border: none;
+    border-radius: 20px;
+
+    font-size: 40px;
+    padding: 5px;
+}
+
+.count_pages span button {
+    border: none;
+    background: none;
+    outline: none;
+
+    cursor: pointer;
+    font-size: 40px;
+
+    transition: 150ms ease;
+}
+
+.count_pages input {
+    display: none;
+}
+
+.count_pages span button:hover {
+    opacity: 0.8;
+}
+
+.count_pages q {
+    color: gray;
+}
+ 
+.tableC {
+    width: 70%;
+    padding-bottom: 25px;
+    margin: 20px auto;
+    background: #303030;
+    text-align: center;
+}
+
+.tableC .tRow {
+    width: 100%;
+    height: 100%;
+
+    z-index: -1;
+}
+
+.tableC .tBlock {
+    position: relative;
+    display: inline-block;
+
+    width: auto;
+    height: 450px;
+
+    margin: 5%;
+    margin-top: 5%;
+    margin-bottom: 8%;
+
+    transition: 300ms ease;
+}
+
+.tableC .tRow .empty-tBlock {
+    display: inline-block;
+    
+    height: 100px;
+    margin: auto;
+}
+
+.tableC .tRow .empty-tBlock p{
+    font-size: 40px;
+    line-height: 125px;
+}
+
+.tableC img {
+    width: auto;
+    height: 100%;
+}
+
+.tableC .tBlock .under {
+    position: absolute;
+    top: 0;
+    left: 0; 
+    width: 100%;
+    height: 100%;
+
+    background: #191919;
+    opacity: 0.9;
+    pointer-events: none;
+
+    font-family: 'Righteous';
+
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    vertical-align: middle;
+
+    transition: 500ms ease;
+    clip-path: circle(10% at 50% -10%);
+}
+
+.under #head {
+    font-family: 'Righteous';
+    font-weight: bold;
+    color: #d9d9d9;
+    font-size: 25px;
+}
+.under #aka {
+    font-family: 'Righteous';
+    color: #aaa;
+    padding-bottom: 10px;
+    font-size: 13px;
+}
+.under #info {
+    font-family: 'Righteous';
+    padding: 0 8px;
+    padding-bottom: 15px;
+    font-size: 16px;
+}
+.under #score {
+    font-family: 'Righteous';
+    color: #aaa;
+    font-size: 14px;
+}
+
+.tableC .tBlock #add_mov{
+    display: block;
+    position: relative;
+    left: 5px;
+
+    background: rgba(0,0,0,0.3);
+    border: none;
+    outline: none;
+    border-radius: 14px;
+
+    width: 150px;
+    margin: 3px 0;
+
+    font-family: 'Righteous';
+    font-size: 30px;
+    
+    cursor: pointer;
+
+    transition: 300ms;
+}
+
+.tableC .tBlock input{
+    display: none;
+}
+
+.tableC .tBlock:hover {
+    transform: scale(1.08);
+}
+
+.tableC .tBlock img:hover ~ .under {
+    clip-path: circle(200% at 50% -10%);
+    transform: scaleX(1.01);
+}
+
+.tableC .tBlock #add_mov:hover {
+    transform: scale(1.15);
+    background: rgba(0,0,0,0.8);
+}
