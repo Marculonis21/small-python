@@ -388,14 +388,3 @@ if __name__ == "__main__":
 
         #sub_plot(episode_durations, target_update, epsilon_mem)
         plt.savefig("train_data/graphs/Graph_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_end.png".format(agent.layout,
-                                                                                              memory_size,
-                                                                                              max_steps,
-                                                                                              batch_size,
-                                                                                              buffer_size,
-                                                                                              target_update,
-                                                                                              learning_rate,
-                                                                                              gamma,
-                                                                                              epsilon,
-                                                                                              epsilon_decay,
-                                                                                              epsilon_end))
-
