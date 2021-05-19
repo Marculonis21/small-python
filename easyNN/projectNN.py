@@ -21,10 +21,6 @@ random.seed(12345)
 X = [[1,1],[1,0],[0,1],[0,0]]
 Y = [0,1,1,0]
 
-l1 = np.array(X[0])                    # input
-l2 = np.array([0.0 for x in range(4)]) # hidden1
-l3 = np.array([0.0 for x in range(1)]) # output
-
 w1 = np.array([[2*random.random() - 1 for TO in range(4)] for FROM in range(2)])
 b1 = np.array([2*random.random() - 1 for TO in range(4)])
 
