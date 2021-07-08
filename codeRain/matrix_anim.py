@@ -149,7 +149,7 @@ def animation_play():
         while True:
             spawnTime += 1
 
-            win.clear()
+            win.erase()
 
             #win.addstr(0,0,str(spawnTime))
             #win.addstr(1,0,str(spawnCD))
