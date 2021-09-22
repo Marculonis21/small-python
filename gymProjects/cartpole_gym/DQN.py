@@ -387,4 +387,4 @@ if __name__ == "__main__":
                     agent.backprop(loss, learning_rate, batch, batch_size)
 
         #sub_plot(episode_durations, target_update, epsilon_mem)
-        plt.savefig("train_data/graphs/Graph_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_end.png".format(agent.layout,
+        # plt.savefig("train_data/graphs/Graph_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_end.png".format(agent.layout,
