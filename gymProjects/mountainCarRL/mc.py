@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 import gym
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-LR = 0.05 
+LR = 0.05
 GAMMA = 0.95
-EPSILON = 0.95 
+EPSILON = 0.95
 
-EPISODES = 50000
+EPISODES = 5000
 
 START_EPSILON_DECAYING = 1
 END_EPSILON_DECAYING = EPISODES//2
@@ -16,16 +16,12 @@ END_EPSILON_DECAYING = EPISODES//2
 EPSILON_DECAY = EPSILON/(END_EPSILON_DECAYING - START_EPSILON_DECAYING)
 
 env = gym.make('MountainCar-v0')
-# env._max_episode_steps = 500
-env.reset();
 
 buckets = [20, 20]
 discrete_size = (env.observation_space.high - env.observation_space.low)/buckets
-print(discrete_size)
 
 q_table = np.random.uniform(low=-2, high=0,
                             size=(buckets[0], buckets[1], env.action_space.n))
-print(q_table.shape)
 
 def observation2state(obs, env):
     nDiscreteState = (obs - env.observation_space.low)/discrete_size
@@ -34,12 +30,11 @@ def observation2state(obs, env):
 rewardList = []
 avgRewardList = []
 
-
 for currEpisode in range(EPISODES):
-    if(currEpisode % 500 == 0):
-        print(currEpisode)
+    # if(currEpisode % 100 == 0):
+    #     print(currEpisode)
 
-    if(currEpisode%2500 == 0 or currEpisode == EPISODES-1):
+    if(currEpisode%1000 == 0 or currEpisode == EPISODES-1):
         print(currEpisode)
         render = True
     else:
@@ -75,7 +70,7 @@ for currEpisode in range(EPISODES):
             currQ = q_table[discreteState + (action,)]
 
             # newQ calculation
-            newQ = (1-LR) * currQ + LR*(reward+ GAMMA* maxQ)
+            newQ = (1-LR) * currQ + LR*(reward + GAMMA * maxQ)
 
             # quality value update
             q_table[discreteState + (action,)] = newQ
@@ -91,11 +86,12 @@ for currEpisode in range(EPISODES):
 
     rewardList.append(totalReward)
 
-    if((currEpisode + 1) % 100 == 0):
+    if((currEpisode + 1) % (EPISODES//100) == 0):
         avgReward = np.mean(rewardList)
         avgRewardList.append(avgReward)
         rewardList = []
 
+    # EPSILON decay
     if END_EPSILON_DECAYING >= currEpisode >= START_EPSILON_DECAYING:
             EPSILON -= EPSILON_DECAY
 
@@ -107,4 +103,3 @@ plt.xlabel('Episodes')
 plt.ylabel('Average Reward')
 plt.title('Reward vs Episodes')
 plt.show()
-
