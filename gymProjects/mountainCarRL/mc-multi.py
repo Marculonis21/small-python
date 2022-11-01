@@ -2,25 +2,22 @@
 import gym
 import matplotlib.pyplot as plt
 import numpy as np
+from agent import Agent
 
-### LearningRate (=Alpha), Gamma (=Discount), Epsilon (=Randomness)
+LR = 0.05
+GAMMA = 0.95
+EPSILON = 0.95
 
-LR = 0.05 
-GAMMA = 0.975
-EPSILON = 0.99
-
-EPISODES = 2500
+EPISODES = 5000
 
 START_EPSILON_DECAYING = 1
-END_EPSILON_DECAYING = EPISODES/3
-EPSILON_END = 0.01
+END_EPSILON_DECAYING = EPISODES//2
 
-EPSILON_DECAY = (EPSILON-EPSILON_END)/(END_EPSILON_DECAYING - START_EPSILON_DECAYING)
+EPSILON_DECAY = EPSILON/(END_EPSILON_DECAYING - START_EPSILON_DECAYING)
 
 env = gym.make('MountainCar-v0')
 
-# Continuous to discrete
-buckets = [20, 8]
+buckets = [20, 20]
 discrete_size = (env.observation_space.high - env.observation_space.low)/buckets
 
 q_table = np.random.uniform(low=-2, high=-1,
@@ -30,24 +27,15 @@ def observation2state(obs, env):
     nDiscreteState = (obs - env.observation_space.low)/discrete_size
     return tuple(nDiscreteState.astype(np.int))
 
-
 rewardList = []
 avgRewardList = []
 
-# Episode loop
 for currEpisode in range(EPISODES):
-    if(currEpisode%1000 == 0 or currEpisode == EPISODES-1):
-        print(currEpisode)
-        render = True
-    else:
-        render = False
 
-    totalReward = 0
-
-    # X,Y to Q-table
+    # X,Y do Q-table
     discreteState = observation2state(env.reset(), env)
 
-    # agent loop
+    totalReward = 0
     done = False
     while not done:
         # epsilon greedy

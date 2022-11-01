@@ -65,7 +65,6 @@ while True:
         for i in tqdm(range(200)):
             env.render()
             action = controller(genIter,observation)
-            # print("action \n{}".format(action))
             observation, reward, done, info = env.step(action)
 
             rew += reward
